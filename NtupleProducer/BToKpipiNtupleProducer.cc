@@ -295,7 +295,7 @@ int main(int argc, char** argv) {
 
 	float dR_tot = dR_piFromB + dR_KFromD0 + dR_piFromD0; //In case several BToKpipi matches, take the closest one in dR_tot
 
-	if( dR_piFromB<0.1 && dR_KFromD0<0.1 && dR_piFromD0
+	if( dR_piFromB<0.1 && dR_KFromD0<0.1 && dR_piFromD0<0.1
 	    && (best_dR<0. || dR_tot<best_dR) ){
 	  best_dR = dR_tot;
 	  _BToKpipi_gen_index = i_BToKpipi;	  
