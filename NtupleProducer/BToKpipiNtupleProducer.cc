@@ -139,8 +139,7 @@ int main(int argc, char** argv) {
 
     tree->GetEntry(iEntry);
 
-    //if(iEntry%10000==0) cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
-    cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
+    if(iEntry%10000==0) cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
 
     _Muon_sel_index = -1;
     _BToKpipi_sel_index = -1;
