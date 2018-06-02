@@ -177,7 +177,7 @@ int main(int argc, char** argv) {
     float best_D0_mass = -1.;
     float best_Bu_mass = -1.;
 
-    for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; nBToKpipi++){            
+    for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){            
 
       if(tree->BToKpipi_piBu_charge[i_BToKpipi]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKpipi with opposite charge to muon
       
@@ -270,7 +270,7 @@ int main(int argc, char** argv) {
 
       float best_dR = -1.;
 
-      for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; nBToKpipi++){
+      for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){
 
 	TLorentzVector piFromB_tlv;
 	TLorentzVector KFromD0_tlv;
