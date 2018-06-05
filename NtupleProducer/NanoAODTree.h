@@ -24,6 +24,7 @@ const int kBToKpipiMax = 10000;
 const int kBToKmumuMax = 10000;
 const int kBToKeeMax = 10000;
 const int kGenPartMax = 10000;
+const int kTrigObjMax = 1000;
 
 using namespace std;
 
@@ -45,6 +46,7 @@ public :
    float Muon_dxy[kMuonMax];
    float Muon_dz[kMuonMax];
    float Muon_pfRelIso04_all[kMuonMax];
+   bool Muon_softId[kMuonMax];
    bool Muon_mediumId[kMuonMax];
 
    uint nBToKpipi;
@@ -102,6 +104,38 @@ public :
    float GenPart_eta[kGenPartMax];
    float GenPart_phi[kGenPartMax];
 
+   bool HLT_Mu8p5_IP3p5_part0;
+   bool HLT_Mu8p5_IP3p5_part1;
+   bool HLT_Mu8p5_IP3p5_part2;
+   bool HLT_Mu8p5_IP3p5_part3;
+   bool HLT_Mu8p5_IP3p5_part4;
+   bool HLT_Mu8p5_IP3p5_part5;
+   bool HLT_Mu10p5_IP3p5_part0;
+   bool HLT_Mu10p5_IP3p5_part1;
+   bool HLT_Mu10p5_IP3p5_part2;
+   bool HLT_Mu10p5_IP3p5_part3;
+   bool HLT_Mu10p5_IP3p5_part4;
+   bool HLT_Mu10p5_IP3p5_part5;
+   bool HLT_Mu9_IP6_part0;
+   bool HLT_Mu9_IP6_part1;
+   bool HLT_Mu9_IP6_part2;
+   bool HLT_Mu9_IP6_part3;
+   bool HLT_Mu9_IP6_part4;
+   bool HLT_Mu9_IP6_part5;
+   bool HLT_Mu8_IP3_part0;
+   bool HLT_Mu8_IP3_part1;
+   bool HLT_Mu8_IP3_part2;
+   bool HLT_Mu8_IP3_part3;
+   bool HLT_Mu8_IP3_part4;
+   bool HLT_Mu8_IP3_part5;
+
+   int nTrigObj;
+   int TrigObj_id[kTrigObjMax];
+   float TrigObj_pt[kTrigObjMax];
+   float TrigObj_eta[kTrigObjMax];
+   float TrigObj_phi[kTrigObjMax];
+   int TrigObj_filterBits[kTrigObjMax];
+
    // methods
    NanoAODTree (TChain* tree);
    ~NanoAODTree();
@@ -145,6 +179,7 @@ void NanoAODTree::Init(TChain* tree)
   _tree->SetBranchAddress("Muon_dxy",&Muon_dxy);
   _tree->SetBranchAddress("Muon_dz",&Muon_dz);
   _tree->SetBranchAddress("Muon_pfRelIso04_all",&Muon_pfRelIso04_all);
+  _tree->SetBranchAddress("Muon_softId",&Muon_softId);
   _tree->SetBranchAddress("Muon_mediumId",&Muon_mediumId);
 
   int BToKpipi_info = _tree->SetBranchAddress("nBToKpipi",&nBToKpipi);
@@ -208,6 +243,40 @@ void NanoAODTree::Init(TChain* tree)
     _tree->SetBranchAddress("GenPart_pt",&GenPart_pt);
     _tree->SetBranchAddress("GenPart_eta",&GenPart_phi);
   }
+
+  bool isBPHTrig = _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part0",&HLT_Mu8p5_IP3p5_part0);
+  if(isBPHTrig){
+    _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part1",&HLT_Mu8p5_IP3p5_part1);
+    _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part2",&HLT_Mu8p5_IP3p5_part2);
+    _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part3",&HLT_Mu8p5_IP3p5_part3);
+    _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part4",&HLT_Mu8p5_IP3p5_part4);
+    _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part5",&HLT_Mu8p5_IP3p5_part5);
+    _tree->SetBranchAddress("HLT_Mu10p5_IP3p5_part0",&HLT_Mu10p5_IP3p5_part0);
+    _tree->SetBranchAddress("HLT_Mu10p5_IP3p5_part1",&HLT_Mu10p5_IP3p5_part1);
+    _tree->SetBranchAddress("HLT_Mu10p5_IP3p5_part2",&HLT_Mu10p5_IP3p5_part2);
+    _tree->SetBranchAddress("HLT_Mu10p5_IP3p5_part3",&HLT_Mu10p5_IP3p5_part3);
+    _tree->SetBranchAddress("HLT_Mu10p5_IP3p5_part4",&HLT_Mu10p5_IP3p5_part4);
+    _tree->SetBranchAddress("HLT_Mu10p5_IP3p5_part5",&HLT_Mu10p5_IP3p5_part5);
+    _tree->SetBranchAddress("HLT_Mu9_IP6_part0",&HLT_Mu9_IP6_part0);
+    _tree->SetBranchAddress("HLT_Mu9_IP6_part1",&HLT_Mu9_IP6_part1);
+    _tree->SetBranchAddress("HLT_Mu9_IP6_part2",&HLT_Mu9_IP6_part2);
+    _tree->SetBranchAddress("HLT_Mu9_IP6_part3",&HLT_Mu9_IP6_part3);
+    _tree->SetBranchAddress("HLT_Mu9_IP6_part4",&HLT_Mu9_IP6_part4);
+    _tree->SetBranchAddress("HLT_Mu9_IP6_part5",&HLT_Mu9_IP6_part5);
+    _tree->SetBranchAddress("HLT_Mu8_IP3_part0",&HLT_Mu8_IP3_part0);
+    _tree->SetBranchAddress("HLT_Mu8_IP3_part1",&HLT_Mu8_IP3_part1);
+    _tree->SetBranchAddress("HLT_Mu8_IP3_part2",&HLT_Mu8_IP3_part2);
+    _tree->SetBranchAddress("HLT_Mu8_IP3_part3",&HLT_Mu8_IP3_part3);
+    _tree->SetBranchAddress("HLT_Mu8_IP3_part4",&HLT_Mu8_IP3_part4);
+    _tree->SetBranchAddress("HLT_Mu8_IP3_part5",&HLT_Mu8_IP3_part5);
+  }
+
+  _tree->SetBranchAddress("nTrigObj",&nTrigObj);
+  _tree->SetBranchAddress("TrigObj_id",&TrigObj_id);
+  _tree->SetBranchAddress("TrigObj_pt",&TrigObj_pt);
+  _tree->SetBranchAddress("TrigObj_eta",&TrigObj_eta);
+  _tree->SetBranchAddress("TrigObj_phi",&TrigObj_phi);
+  _tree->SetBranchAddress("TrigObj_filterBits",&TrigObj_filterBits);
 
 }
 

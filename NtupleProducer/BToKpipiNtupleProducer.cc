@@ -32,6 +32,13 @@ int main(int argc, char** argv) {
   if (status_sample.compare("mc") == 0) isMC = true;
   if (status_sample.compare("data") == 0) isData = true;
 
+  bool isBPHParking = false;
+  for (int i = 1; i < argc; ++i) {
+    if(std::string(argv[i]) == "BPHParking") {
+      isBPHParking = true;
+      break;
+    }
+  }
 
   string output;
   for (int i = 1; i < argc; ++i) {
@@ -131,6 +138,25 @@ int main(int argc, char** argv) {
 
   }
 
+
+  bool _HLT_Mu8p5_IP3p5 = false;
+  bool _HLT_Mu10p5_IP3p5 = false;
+  bool _HLT_Mu9_IP6 = false;
+  bool _HLT_Mu8_IP3 = false;
+  bool _HLT_BPHParking = false;
+
+  if(isBPHParking){
+
+    tree_new->Branch("HLT_Mu8p5_IP3p5",&_HLT_Mu8p5_IP3p5,"HLT_Mu8p5_IP3p5/O");
+    tree_new->Branch("HLT_Mu10p5_IP3p5",&_HLT_Mu10p5_IP3p5,"HLT_Mu10p5_IP3p5/O");
+    tree_new->Branch("HLT_Mu9_IP6",&_HLT_Mu9_IP6,"HLT_Mu9_IP6/O");
+    tree_new->Branch("HLT_Mu8_IP3",&_HLT_Mu8_IP3,"HLT_Mu8_IP3/O");
+    tree_new->Branch("HLT_BPHParking",&_HLT_BPHParking,"HLT_BPHParking/O");
+
+  }
+
+
+
   int nentries = tree->GetEntries();
   cout<<"Nentries="<<nentries<<endl;
   cout<<"isMC="<<isMC<<endl;
@@ -151,14 +177,81 @@ int main(int argc, char** argv) {
     _GenPart_piFromD0_index = -1;
     _BToKpipi_gen_index = -1;
 
+    _HLT_Mu8p5_IP3p5 = false;
+    _HLT_Mu10p5_IP3p5 = false;
+    _HLT_Mu9_IP6 = false;
+    _HLT_Mu8_IP3 = false;
+    _HLT_BPHParking = false;
+
     //Select the muon
 
     int nMuon = tree->nMuon;
 
     for(int i_mu=0; i_mu<nMuon; i_mu++){
 
-      //Selections on the muon to refine (in particular trigger matching)
-      if( 1 ){
+      bool isMuSel = tree->Muon_softId[i_mu];
+
+      //Trigger selection + matching
+
+      //Only for isBPHParking for now
+      if(isMC){
+	isMuSel = true;
+      }
+
+
+      if(isBPHParking){
+
+	_HLT_Mu8p5_IP3p5 = tree->HLT_Mu8p5_IP3p5_part0
+	  || tree->HLT_Mu8p5_IP3p5_part1
+	  || tree->HLT_Mu8p5_IP3p5_part2
+	  || tree->HLT_Mu8p5_IP3p5_part3
+	  || tree->HLT_Mu8p5_IP3p5_part4
+	  || tree->HLT_Mu8p5_IP3p5_part5;
+	_HLT_Mu10p5_IP3p5 = tree->HLT_Mu10p5_IP3p5_part0
+	  || tree->HLT_Mu10p5_IP3p5_part1
+	  || tree->HLT_Mu10p5_IP3p5_part2
+	  || tree->HLT_Mu10p5_IP3p5_part3
+	  || tree->HLT_Mu10p5_IP3p5_part4
+	  || tree->HLT_Mu10p5_IP3p5_part5;
+	_HLT_Mu9_IP6 = tree->HLT_Mu9_IP6_part0
+	  || tree->HLT_Mu9_IP6_part1
+	  || tree->HLT_Mu9_IP6_part2
+	  || tree->HLT_Mu9_IP6_part3
+	  || tree->HLT_Mu9_IP6_part4
+	  || tree->HLT_Mu9_IP6_part5;
+	_HLT_Mu8_IP3 = tree->HLT_Mu8_IP3_part0
+	  || tree->HLT_Mu8_IP3_part1
+	  || tree->HLT_Mu8_IP3_part2
+	  || tree->HLT_Mu8_IP3_part3
+	  || tree->HLT_Mu8_IP3_part4
+	  || tree->HLT_Mu8_IP3_part5;
+	_HLT_BPHParking = _HLT_Mu8p5_IP3p5 || _HLT_Mu10p5_IP3p5 || _HLT_Mu9_IP6 || _HLT_Mu8_IP3;
+
+	TLorentzVector mu;
+	mu.SetPtEtaPhiM(tree->Muon_pt[i_mu],tree->Muon_eta[i_mu],tree->Muon_phi[i_mu],tree->Muon_mass[i_mu]);
+
+	bool isTrigMatched = false;
+	int nTrigObj = tree->nTrigObj;
+	for(unsigned int i_trig = 0; i_trig<nTrigObj; i_trig++){
+
+	  if( tree->TrigObj_id[i_trig]==13 && ((tree->TrigObj_filterBits[i_trig])>>3)&1 ){
+	    TLorentzVector trig;
+	    trig.SetPtEtaPhiM(tree->TrigObj_pt[i_trig],tree->TrigObj_eta[i_trig],tree->TrigObj_phi[i_trig],0);
+	    float dR = mu.DeltaR(trig);
+	    if(dR<0.1){
+	      isTrigMatched = true;
+	      break;
+	    }
+	  }
+
+	}
+
+	isMuSel &= (_HLT_BPHParking && isTrigMatched);
+
+      }
+
+
+      if( isMuSel ){
 	_Muon_sel_index = i_mu;
 	break; //Take leading muon passing the selections (muons are pt-ordered)
       }
@@ -166,7 +259,8 @@ int main(int argc, char** argv) {
     }
 
     if(_Muon_sel_index <0){
-      tree_new->Fill();
+      //Let's skim events which do not have a tag muon (including trigger)
+      //tree_new->Fill();
       continue;
     }
 
