@@ -241,7 +241,8 @@ void NanoAODTree::Init(TChain* tree)
     _tree->SetBranchAddress("GenPart_pdgId",&GenPart_pdgId);
     _tree->SetBranchAddress("GenPart_genPartIdxMother",&GenPart_genPartIdxMother);
     _tree->SetBranchAddress("GenPart_pt",&GenPart_pt);
-    _tree->SetBranchAddress("GenPart_eta",&GenPart_phi);
+    _tree->SetBranchAddress("GenPart_eta",&GenPart_eta);
+    _tree->SetBranchAddress("GenPart_phi",&GenPart_phi);
   }
 
   bool isBPHTrig = _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part0",&HLT_Mu8p5_IP3p5_part0);
