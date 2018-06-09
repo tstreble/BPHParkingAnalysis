@@ -221,8 +221,8 @@ void NanoAODTree::Init(TChain* tree)
   int BToKee_info = _tree->SetBranchAddress("nBToKee",&nBToKee);
   if(BToKee_info>=0){
     _tree->SetBranchAddress("BToKee_CL_vtx",&BToKee_CL_vtx);
-    _tree->SetBranchAddress("BToKee_mumu_CL_vtx",&BToKee_ee_CL_vtx);
-    _tree->SetBranchAddress("BToKee_mumu_mass",&BToKee_ee_mass);
+    _tree->SetBranchAddress("BToKee_ee_CL_vtx",&BToKee_ee_CL_vtx);
+    _tree->SetBranchAddress("BToKee_ee_mass",&BToKee_ee_mass);
     _tree->SetBranchAddress("BToKee_mass",&BToKee_mass);
     _tree->SetBranchAddress("BToKee_kaon_charge",&BToKee_kaon_charge);
     _tree->SetBranchAddress("BToKee_kaon_pt",&BToKee_kaon_pt);
