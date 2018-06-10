@@ -25,6 +25,7 @@ const int kBToKmumuMax = 10000;
 const int kBToKeeMax = 10000;
 const int kGenPartMax = 10000;
 const int kTrigObjMax = 1000;
+const int kPFCandMax = 10000;
 
 using namespace std;
 
@@ -35,7 +36,7 @@ public :
    //Old NanoAOD branches used
    int run;
    int luminosityBlock;
-   int event;
+   long event;
 
    uint nMuon;
    int Muon_charge[kMuonMax];
@@ -97,7 +98,7 @@ public :
    float BToKee_ele2_eta[kBToKeeMax];
    float BToKee_ele2_phi[kBToKeeMax];
 
-   int nGenPart;
+   uint nGenPart;
    int GenPart_pdgId[kGenPartMax];
    int GenPart_genPartIdxMother[kGenPartMax];
    float GenPart_pt[kGenPartMax];
@@ -129,12 +130,19 @@ public :
    bool HLT_Mu8_IP3_part4;
    bool HLT_Mu8_IP3_part5;
 
-   int nTrigObj;
+   uint nTrigObj;
    int TrigObj_id[kTrigObjMax];
    float TrigObj_pt[kTrigObjMax];
    float TrigObj_eta[kTrigObjMax];
    float TrigObj_phi[kTrigObjMax];
    int TrigObj_filterBits[kTrigObjMax];
+
+   uint nPFCand;
+   float PFCand_pt[kPFCandMax];
+   float PFCand_eta[kPFCandMax];
+   float PFCand_phi[kPFCandMax];
+   float PFCand_mass[kPFCandMax];
+   float PFCand_pdgId[kPFCandMax];
 
    // methods
    NanoAODTree (TChain* tree);
@@ -221,8 +229,8 @@ void NanoAODTree::Init(TChain* tree)
   int BToKee_info = _tree->SetBranchAddress("nBToKee",&nBToKee);
   if(BToKee_info>=0){
     _tree->SetBranchAddress("BToKee_CL_vtx",&BToKee_CL_vtx);
-    _tree->SetBranchAddress("BToKee_mumu_CL_vtx",&BToKee_ee_CL_vtx);
-    _tree->SetBranchAddress("BToKee_mumu_mass",&BToKee_ee_mass);
+    _tree->SetBranchAddress("BToKee_ee_CL_vtx",&BToKee_ee_CL_vtx);
+    _tree->SetBranchAddress("BToKee_ee_mass",&BToKee_ee_mass);
     _tree->SetBranchAddress("BToKee_mass",&BToKee_mass);
     _tree->SetBranchAddress("BToKee_kaon_charge",&BToKee_kaon_charge);
     _tree->SetBranchAddress("BToKee_kaon_pt",&BToKee_kaon_pt);
@@ -236,16 +244,17 @@ void NanoAODTree::Init(TChain* tree)
     _tree->SetBranchAddress("BToKee_ele2_phi",&BToKee_ele2_phi);
   }
 
-  bool isMC = _tree->SetBranchAddress("nGenPart",&nGenPart);
-  if(isMC){
+  int isMC = _tree->SetBranchAddress("nGenPart",&nGenPart);
+  if(isMC>=0){
     _tree->SetBranchAddress("GenPart_pdgId",&GenPart_pdgId);
     _tree->SetBranchAddress("GenPart_genPartIdxMother",&GenPart_genPartIdxMother);
     _tree->SetBranchAddress("GenPart_pt",&GenPart_pt);
-    _tree->SetBranchAddress("GenPart_eta",&GenPart_phi);
+    _tree->SetBranchAddress("GenPart_eta",&GenPart_eta);
+    _tree->SetBranchAddress("GenPart_phi",&GenPart_phi);
   }
 
-  bool isBPHTrig = _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part0",&HLT_Mu8p5_IP3p5_part0);
-  if(isBPHTrig){
+  int isBPHTrig = _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part0",&HLT_Mu8p5_IP3p5_part0);
+  if(isBPHTrig>=0){
     _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part1",&HLT_Mu8p5_IP3p5_part1);
     _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part2",&HLT_Mu8p5_IP3p5_part2);
     _tree->SetBranchAddress("HLT_Mu8p5_IP3p5_part3",&HLT_Mu8p5_IP3p5_part3);
@@ -277,13 +286,24 @@ void NanoAODTree::Init(TChain* tree)
   _tree->SetBranchAddress("TrigObj_eta",&TrigObj_eta);
   _tree->SetBranchAddress("TrigObj_phi",&TrigObj_phi);
   _tree->SetBranchAddress("TrigObj_filterBits",&TrigObj_filterBits);
+  
+  int PFCand_info = _tree->SetBranchAddress("nPFCand",&nPFCand);
+  if(PFCand_info){
+    _tree->SetBranchAddress("PFCand_pt",&PFCand_pt);
+    _tree->SetBranchAddress("PFCand_eta",&PFCand_eta);
+    _tree->SetBranchAddress("PFCand_phi",&PFCand_phi);
+    _tree->SetBranchAddress("PFCand_mass",&PFCand_mass);
+    _tree->SetBranchAddress("PFCand_pdgId",&PFCand_pdgId);
+  }
 
 }
 
 
 Int_t NanoAODTree::GetEntry(int entry)
 {
-    return _tree->GetEntry(entry);
+
+  return _tree->GetEntry(entry);
+
 } 
 
 Long64_t NanoAODTree::GetEntries()
