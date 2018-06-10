@@ -32,6 +32,13 @@ int main(int argc, char** argv) {
   if (status_sample.compare("mc") == 0) isMC = true;
   if (status_sample.compare("data") == 0) isData = true;
 
+  bool isBPHParking = false;
+  for (int i = 1; i < argc; ++i) {
+    if(std::string(argv[i]) == "BPHParking") {
+      isBPHParking = true;
+      break;
+    }
+  }
 
   string output;
   for (int i = 1; i < argc; ++i) {
@@ -79,13 +86,13 @@ int main(int argc, char** argv) {
   }
 
 
-  bool saveFullNanoAOD;
-  for (int i = 1; i < argc; ++i) {
+  bool saveFullNanoAOD = true;
+  /*for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--saveFullNanoAOD") {
       saveFullNanoAOD = true;
       break;
     }
-  }
+    }*/
  
 
   TFile* f_new = TFile::Open(output.c_str());
@@ -101,8 +108,9 @@ int main(int argc, char** argv) {
   NanoAODTree* tree = new NanoAODTree(oldtree);
 
   TTree* tree_new=new TTree("BToKpipiTree","BToKpipiTree");
+  int nentries = oldtree->GetEntries();
   if(saveFullNanoAOD)
-    tree_new=tree->GetTree()->CloneTree(0);
+    tree_new=oldtree->GetTree()->CloneTree(0);
 
 
   //New branches
@@ -131,7 +139,32 @@ int main(int argc, char** argv) {
 
   }
 
-  int nentries = tree->GetEntries();
+
+  bool _HLT_Mu8p5_IP3p5 = false;
+  bool _HLT_Mu10p5_IP3p5 = false;
+  bool _HLT_Mu9_IP6 = false;
+  bool _HLT_Mu8_IP3 = false;
+  bool _HLT_BPHParking = false;
+
+  if(isBPHParking){
+
+    tree_new->Branch("HLT_Mu8p5_IP3p5",&_HLT_Mu8p5_IP3p5,"HLT_Mu8p5_IP3p5/O");
+    tree_new->Branch("HLT_Mu10p5_IP3p5",&_HLT_Mu10p5_IP3p5,"HLT_Mu10p5_IP3p5/O");
+    tree_new->Branch("HLT_Mu9_IP6",&_HLT_Mu9_IP6,"HLT_Mu9_IP6/O");
+    tree_new->Branch("HLT_Mu8_IP3",&_HLT_Mu8_IP3,"HLT_Mu8_IP3/O");
+    tree_new->Branch("HLT_BPHParking",&_HLT_BPHParking,"HLT_BPHParking/O");
+
+  }
+
+  int _PFCand_genPiFromB_index = -1;
+  int _PFCand_genKFromD0_index = -1;
+  int _PFCand_genPiFromD0_index = -1;
+
+  tree_new->Branch("PFCand_genPiFromB_index",&_PFCand_genPiFromB_index,"PFCand_genPiFromB_index/I");
+  tree_new->Branch("PFCand_genKFromD0_index",&_PFCand_genKFromD0_index,"PFCand_genKFromD0_index/I");
+  tree_new->Branch("PFCand_genPiFromD0_index",&_PFCand_genPiFromD0_index,"PFCand_genPiFromD0_index/I");
+
+
   cout<<"Nentries="<<nentries<<endl;
   cout<<"isMC="<<isMC<<endl;
 
@@ -140,6 +173,7 @@ int main(int argc, char** argv) {
     tree->GetEntry(iEntry);
 
     if(iEntry%10000==0) cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
+
 
     _Muon_sel_index = -1;
     _BToKpipi_sel_index = -1;
@@ -151,14 +185,85 @@ int main(int argc, char** argv) {
     _GenPart_piFromD0_index = -1;
     _BToKpipi_gen_index = -1;
 
+    _HLT_Mu8p5_IP3p5 = false;
+    _HLT_Mu10p5_IP3p5 = false;
+    _HLT_Mu9_IP6 = false;
+    _HLT_Mu8_IP3 = false;
+    _HLT_BPHParking = false;
+
+    _PFCand_genPiFromB_index = -1;
+    _PFCand_genKFromD0_index = -1;
+    _PFCand_genPiFromD0_index = -1;
+
     //Select the muon
 
     int nMuon = tree->nMuon;
 
     for(int i_mu=0; i_mu<nMuon; i_mu++){
 
-      //Selections on the muon to refine (in particular trigger matching)
-      if( 1 ){
+      bool isMuSel = tree->Muon_softId[i_mu];
+
+      //Trigger selection + matching
+
+      //Only for isBPHParking for now
+      if(isMC){
+	isMuSel &= true;
+      }
+
+
+      if(isBPHParking){
+
+	_HLT_Mu8p5_IP3p5 = tree->HLT_Mu8p5_IP3p5_part0
+	  || tree->HLT_Mu8p5_IP3p5_part1
+	  || tree->HLT_Mu8p5_IP3p5_part2
+	  || tree->HLT_Mu8p5_IP3p5_part3
+	  || tree->HLT_Mu8p5_IP3p5_part4
+	  || tree->HLT_Mu8p5_IP3p5_part5;
+	_HLT_Mu10p5_IP3p5 = tree->HLT_Mu10p5_IP3p5_part0
+	  || tree->HLT_Mu10p5_IP3p5_part1
+	  || tree->HLT_Mu10p5_IP3p5_part2
+	  || tree->HLT_Mu10p5_IP3p5_part3
+	  || tree->HLT_Mu10p5_IP3p5_part4
+	  || tree->HLT_Mu10p5_IP3p5_part5;
+	_HLT_Mu9_IP6 = tree->HLT_Mu9_IP6_part0
+	  || tree->HLT_Mu9_IP6_part1
+	  || tree->HLT_Mu9_IP6_part2
+	  || tree->HLT_Mu9_IP6_part3
+	  || tree->HLT_Mu9_IP6_part4
+	  || tree->HLT_Mu9_IP6_part5;
+	_HLT_Mu8_IP3 = tree->HLT_Mu8_IP3_part0
+	  || tree->HLT_Mu8_IP3_part1
+	  || tree->HLT_Mu8_IP3_part2
+	  || tree->HLT_Mu8_IP3_part3
+	  || tree->HLT_Mu8_IP3_part4
+	  || tree->HLT_Mu8_IP3_part5;
+	_HLT_BPHParking = _HLT_Mu8p5_IP3p5 || _HLT_Mu10p5_IP3p5 || _HLT_Mu9_IP6 || _HLT_Mu8_IP3;
+
+	TLorentzVector mu;
+	mu.SetPtEtaPhiM(tree->Muon_pt[i_mu],tree->Muon_eta[i_mu],tree->Muon_phi[i_mu],tree->Muon_mass[i_mu]);
+
+	bool isTrigMatched = false;
+	int nTrigObj = tree->nTrigObj;
+	for(unsigned int i_trig = 0; i_trig<nTrigObj; i_trig++){
+
+	  if( tree->TrigObj_id[i_trig]==13 && ((tree->TrigObj_filterBits[i_trig])>>3)&1 ){
+	    TLorentzVector trig;
+	    trig.SetPtEtaPhiM(tree->TrigObj_pt[i_trig],tree->TrigObj_eta[i_trig],tree->TrigObj_phi[i_trig],0);
+	    float dR = mu.DeltaR(trig);
+	    if(dR<0.1){
+	      isTrigMatched = true;
+	      break;
+	    }
+	  }
+
+	}
+
+	isMuSel &= (_HLT_BPHParking && isTrigMatched);
+
+      }
+
+
+      if( isMuSel ){
 	_Muon_sel_index = i_mu;
 	break; //Take leading muon passing the selections (muons are pt-ordered)
       }
@@ -166,7 +271,8 @@ int main(int argc, char** argv) {
     }
 
     if(_Muon_sel_index <0){
-      tree_new->Fill();
+      //Let's skim events which do not have a tag muon (including trigger)
+      //tree_new->Fill();
       continue;
     }
 
@@ -205,36 +311,41 @@ int main(int argc, char** argv) {
     }
 
 
-    
-    //Select the BToKpipi candidate based on gen matching
+
 
     if(isMC){
       
       int nGenPart = tree->nGenPart;
-      
+
       for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
 
+	_GenPart_D0FromB_index = -1;
+	_GenPart_piFromB_index = -1;
+
 	if(abs(tree->GenPart_pdgId[i_Bu])==521){
+
+	  bool additional_daughters = false;
 
 	  for(int i_gen=0; i_gen<nGenPart; i_gen++){
 	    int pdgId = tree->GenPart_pdgId[i_gen];
 	    int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	    if(abs(pdgId)==421 && mother_index == i_Bu)
-	      _GenPart_D0FromB_index = i_gen;
-	    else if(abs(pdgId)==211 && mother_index == i_Bu)
-	      _GenPart_piFromB_index = i_gen;
-	    if(_GenPart_D0FromB_index>=0 && _GenPart_piFromB_index>=0){
-	      _GenPart_BToKpipi_index = i_Bu;
-	      break;
+	    if(mother_index == i_Bu){
+	      if(abs(pdgId)==421 && _GenPart_D0FromB_index<0) _GenPart_D0FromB_index = i_gen;
+	      else if(abs(pdgId)==211 && _GenPart_piFromB_index<0) _GenPart_piFromB_index = i_gen;
+	      else if(abs(pdgId)!=22) additional_daughters = true;
 	    }
-	  }	  
+	  }
+
+	  if(_GenPart_D0FromB_index>=0 && _GenPart_piFromB_index>=0 && !additional_daughters){
+	    _GenPart_BToKpipi_index = i_Bu;
+	    break;
+	  }
 
 	}
 	
 	if(_GenPart_BToKpipi_index>=0) break;
 
       }
-
 
       
       for(int i_gen=0; i_gen<nGenPart; i_gen++){
@@ -269,6 +380,9 @@ int main(int argc, char** argv) {
 
       float best_dR = -1.;
 
+
+      //Select the BToKpipi candidate based on gen matching
+
       for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){
 
 	TLorentzVector piFromB_tlv;
@@ -299,6 +413,43 @@ int main(int argc, char** argv) {
 	  best_dR = dR_tot;
 	  _BToKpipi_gen_index = i_BToKpipi;	  
 	}
+
+      }
+
+
+      //Select the PFCand based on gen matching
+
+      float best_dR_piFromB = -1.;
+      float best_dR_KFromD0 = -1.;
+      float best_dR_piFromD0 = -1.;
+
+      int nPFCand = tree->nPFCand;
+      for(int i_pf=0;i_pf<nPFCand;i_pf++){
+
+	if(abs(tree->PFCand_pdgId[i_pf])!=211) continue;
+
+	TLorentzVector PFCand_tlv;
+	PFCand_tlv.SetPtEtaPhiM(tree->PFCand_pt[i_pf],tree->PFCand_eta[i_pf],tree->PFCand_phi[i_pf],tree->PFCand_mass[i_pf]);
+
+	float dR_piFromB = PFCand_tlv.DeltaR(gen_piFromB_tlv);
+
+	if(dR_piFromB<0.1 && (best_dR_piFromB<0. || dR_piFromB<best_dR_piFromB)){
+	  _PFCand_genPiFromB_index = i_pf;
+	  best_dR_piFromB = dR_piFromB;
+	}
+
+	float dR_KFromD0 = PFCand_tlv.DeltaR(gen_KFromD0_tlv);
+	if(dR_KFromD0<0.1 && (best_dR_KFromD0<0. || dR_KFromD0<best_dR_KFromD0)){
+	  _PFCand_genKFromD0_index = i_pf;
+	  best_dR_KFromD0 = dR_KFromD0;
+	}
+
+	float dR_piFromD0 = PFCand_tlv.DeltaR(gen_piFromD0_tlv);
+	if(dR_piFromD0<0.1 && (best_dR_piFromD0<0. || dR_piFromD0<best_dR_piFromD0)){
+	  _PFCand_genPiFromD0_index = i_pf;
+	  best_dR_piFromD0 = dR_piFromD0;
+	}
+
 
       }
 
