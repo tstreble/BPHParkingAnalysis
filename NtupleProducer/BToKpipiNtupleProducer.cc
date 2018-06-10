@@ -86,13 +86,13 @@ int main(int argc, char** argv) {
   }
 
 
-  bool saveFullNanoAOD;
-  for (int i = 1; i < argc; ++i) {
+  bool saveFullNanoAOD = true;
+  /*for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--saveFullNanoAOD") {
       saveFullNanoAOD = true;
       break;
     }
-  }
+    }*/
  
 
   TFile* f_new = TFile::Open(output.c_str());
@@ -108,8 +108,9 @@ int main(int argc, char** argv) {
   NanoAODTree* tree = new NanoAODTree(oldtree);
 
   TTree* tree_new=new TTree("BToKpipiTree","BToKpipiTree");
+  int nentries = oldtree->GetEntries();
   if(saveFullNanoAOD)
-    tree_new=tree->GetTree()->CloneTree(0);
+    tree_new=oldtree->GetTree()->CloneTree(0);
 
 
   //New branches
@@ -155,9 +156,15 @@ int main(int argc, char** argv) {
 
   }
 
+  int _PFCand_genPiFromB_index = -1;
+  int _PFCand_genKFromD0_index = -1;
+  int _PFCand_genPiFromD0_index = -1;
+
+  tree_new->Branch("PFCand_genPiFromB_index",&_PFCand_genPiFromB_index,"PFCand_genPiFromB_index/I");
+  tree_new->Branch("PFCand_genKFromD0_index",&_PFCand_genKFromD0_index,"PFCand_genKFromD0_index/I");
+  tree_new->Branch("PFCand_genPiFromD0_index",&_PFCand_genPiFromD0_index,"PFCand_genPiFromD0_index/I");
 
 
-  int nentries = tree->GetEntries();
   cout<<"Nentries="<<nentries<<endl;
   cout<<"isMC="<<isMC<<endl;
 
@@ -166,6 +173,7 @@ int main(int argc, char** argv) {
     tree->GetEntry(iEntry);
 
     if(iEntry%10000==0) cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
+
 
     _Muon_sel_index = -1;
     _BToKpipi_sel_index = -1;
@@ -183,6 +191,10 @@ int main(int argc, char** argv) {
     _HLT_Mu8_IP3 = false;
     _HLT_BPHParking = false;
 
+    _PFCand_genPiFromB_index = -1;
+    _PFCand_genKFromD0_index = -1;
+    _PFCand_genPiFromD0_index = -1;
+
     //Select the muon
 
     int nMuon = tree->nMuon;
@@ -195,7 +207,7 @@ int main(int argc, char** argv) {
 
       //Only for isBPHParking for now
       if(isMC){
-	isMuSel = true;
+	isMuSel &= true;
       }
 
 
@@ -299,8 +311,7 @@ int main(int argc, char** argv) {
     }
 
 
-    
-    //Select the BToKpipi candidate based on gen matching
+
 
     if(isMC){
       
@@ -328,7 +339,6 @@ int main(int argc, char** argv) {
 	if(_GenPart_BToKpipi_index>=0) break;
 
       }
-
 
       
       for(int i_gen=0; i_gen<nGenPart; i_gen++){
@@ -363,6 +373,9 @@ int main(int argc, char** argv) {
 
       float best_dR = -1.;
 
+
+      //Select the BToKpipi candidate based on gen matching
+
       for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){
 
 	TLorentzVector piFromB_tlv;
@@ -393,6 +406,43 @@ int main(int argc, char** argv) {
 	  best_dR = dR_tot;
 	  _BToKpipi_gen_index = i_BToKpipi;	  
 	}
+
+      }
+
+
+      //Select the PFCand based on gen matching
+
+      float best_dR_piFromB = -1.;
+      float best_dR_KFromD0 = -1.;
+      float best_dR_piFromD0 = -1.;
+
+      int nPFCand = tree->nPFCand;
+      for(int i_pf=0;i_pf<nPFCand;i_pf++){
+
+	if(abs(tree->PFCand_pdgId[i_pf])!=211) continue;
+
+	TLorentzVector PFCand_tlv;
+	PFCand_tlv.SetPtEtaPhiM(tree->PFCand_pt[i_pf],tree->PFCand_eta[i_pf],tree->PFCand_phi[i_pf],tree->PFCand_mass[i_pf]);
+
+	float dR_piFromB = PFCand_tlv.DeltaR(gen_piFromB_tlv);
+
+	if(dR_piFromB<0.1 && (best_dR_piFromB<0. || dR_piFromB<best_dR_piFromB)){
+	  _PFCand_genPiFromB_index = i_pf;
+	  best_dR_piFromB = dR_piFromB;
+	}
+
+	float dR_KFromD0 = PFCand_tlv.DeltaR(gen_KFromD0_tlv);
+	if(dR_KFromD0<0.1 && (best_dR_KFromD0<0. || dR_KFromD0<best_dR_KFromD0)){
+	  _PFCand_genKFromD0_index = i_pf;
+	  best_dR_KFromD0 = dR_KFromD0;
+	}
+
+	float dR_piFromD0 = PFCand_tlv.DeltaR(gen_piFromD0_tlv);
+	if(dR_piFromD0<0.1 && (best_dR_piFromD0<0. || dR_piFromD0<best_dR_piFromD0)){
+	  _PFCand_genPiFromD0_index = i_pf;
+	  best_dR_piFromD0 = dR_piFromD0;
+	}
+
 
       }
 
