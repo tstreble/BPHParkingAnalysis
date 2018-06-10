@@ -316,23 +316,30 @@ int main(int argc, char** argv) {
     if(isMC){
       
       int nGenPart = tree->nGenPart;
-      
+
       for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
 
+	_GenPart_D0FromB_index = -1;
+	_GenPart_piFromB_index = -1;
+
 	if(abs(tree->GenPart_pdgId[i_Bu])==521){
+
+	  bool additional_daughters = false;
 
 	  for(int i_gen=0; i_gen<nGenPart; i_gen++){
 	    int pdgId = tree->GenPart_pdgId[i_gen];
 	    int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	    if(abs(pdgId)==421 && mother_index == i_Bu)
-	      _GenPart_D0FromB_index = i_gen;
-	    else if(abs(pdgId)==211 && mother_index == i_Bu)
-	      _GenPart_piFromB_index = i_gen;
-	    if(_GenPart_D0FromB_index>=0 && _GenPart_piFromB_index>=0){
-	      _GenPart_BToKpipi_index = i_Bu;
-	      break;
+	    if(mother_index == i_Bu){
+	      if(abs(pdgId)==421 && _GenPart_D0FromB_index<0) _GenPart_D0FromB_index = i_gen;
+	      else if(abs(pdgId)==211 && _GenPart_piFromB_index<0) _GenPart_piFromB_index = i_gen;
+	      else if(abs(pdgId)!=22) additional_daughters = true;
 	    }
-	  }	  
+	  }
+
+	  if(_GenPart_D0FromB_index>=0 && _GenPart_piFromB_index>=0 && !additional_daughters){
+	    _GenPart_BToKpipi_index = i_Bu;
+	    break;
+	  }
 
 	}
 	
