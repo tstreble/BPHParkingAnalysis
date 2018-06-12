@@ -62,6 +62,7 @@ public :
    float BToKpipi_kaon_pt[kBToKpipiMax];
    float BToKpipi_kaon_eta[kBToKpipiMax];
    float BToKpipi_kaon_phi[kBToKpipiMax];
+   int BToKpipi_kaon_charge[kBToKpipiMax];
    float BToKpipi_piD0_pt[kBToKpipiMax];
    float BToKpipi_piD0_eta[kBToKpipiMax];
    float BToKpipi_piD0_phi[kBToKpipiMax];
@@ -143,6 +144,8 @@ public :
    float PFCand_phi[kPFCandMax];
    float PFCand_mass[kPFCandMax];
    float PFCand_pdgId[kPFCandMax];
+   float PFCand_DCASig[kPFCandMax];
+   float PFCand_dz[kPFCandMax];
 
    // methods
    NanoAODTree (TChain* tree);
@@ -294,6 +297,8 @@ void NanoAODTree::Init(TChain* tree)
     _tree->SetBranchAddress("PFCand_phi",&PFCand_phi);
     _tree->SetBranchAddress("PFCand_mass",&PFCand_mass);
     _tree->SetBranchAddress("PFCand_pdgId",&PFCand_pdgId);
+    _tree->SetBranchAddress("PFCand_DCASig",&PFCand_DCASig);
+    _tree->SetBranchAddress("PFCand_dz",&PFCand_dz);
   }
 
 }
