@@ -20,7 +20,7 @@
 #include <TTree.h>
 
 const int kMuonMax = 100;
-const int kBToKpipiMax = 10000;
+const int kBToKpipiMax = 1000000;
 const int kBToKmumuMax = 10000;
 const int kBToKeeMax = 10000;
 const int kGenPartMax = 10000;
