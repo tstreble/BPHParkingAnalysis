@@ -20,7 +20,7 @@
 #include <TTree.h>
 
 const int kMuonMax = 100;
-const int kBToKpipiMax = 10000;
+const int kBToKpipiMax = 1000000;
 const int kBToKmumuMax = 10000;
 const int kBToKeeMax = 10000;
 const int kGenPartMax = 10000;
@@ -52,8 +52,11 @@ public :
 
    uint nBToKpipi;
    float BToKpipi_CL_vtx[kBToKpipiMax];
+   float BToKpipi_cosAlpha[kBToKpipiMax];
+   float BToKpipi_Lxy[kBToKpipiMax];
    float BToKpipi_Kpi_CL_vtx[kBToKpipiMax];
    float BToKpipi_Kpi_mass[kBToKpipiMax];
+   float BToKpipi_Kpi_pt[kBToKpipiMax];
    float BToKpipi_mass[kBToKpipiMax];
    int BToKpipi_piBu_charge[kBToKpipiMax];
    float BToKpipi_piBu_pt[kBToKpipiMax];
@@ -63,9 +66,11 @@ public :
    float BToKpipi_kaon_eta[kBToKpipiMax];
    float BToKpipi_kaon_phi[kBToKpipiMax];
    int BToKpipi_kaon_charge[kBToKpipiMax];
+   float BToKpipi_kaon_dz[kBToKpipiMax];
    float BToKpipi_piD0_pt[kBToKpipiMax];
    float BToKpipi_piD0_eta[kBToKpipiMax];
    float BToKpipi_piD0_phi[kBToKpipiMax];
+   float BToKpipi_piD0_dz[kBToKpipiMax];
  
    uint nBToKmumu;
    float BToKmumu_CL_vtx[kBToKmumuMax];
@@ -143,7 +148,7 @@ public :
    float PFCand_eta[kPFCandMax];
    float PFCand_phi[kPFCandMax];
    float PFCand_mass[kPFCandMax];
-   float PFCand_pdgId[kPFCandMax];
+   int PFCand_pdgId[kPFCandMax];
    float PFCand_DCASig[kPFCandMax];
    float PFCand_dz[kPFCandMax];
 
@@ -196,19 +201,25 @@ void NanoAODTree::Init(TChain* tree)
   int BToKpipi_info = _tree->SetBranchAddress("nBToKpipi",&nBToKpipi);
   if(BToKpipi_info>=0){
     _tree->SetBranchAddress("BToKpipi_CL_vtx",&BToKpipi_CL_vtx);
+    _tree->SetBranchAddress("BToKpipi_Lxy",&BToKpipi_Lxy);
+    _tree->SetBranchAddress("BToKpipi_cosAlpha",&BToKpipi_cosAlpha);
     _tree->SetBranchAddress("BToKpipi_Kpi_CL_vtx",&BToKpipi_Kpi_CL_vtx);
     _tree->SetBranchAddress("BToKpipi_Kpi_mass",&BToKpipi_Kpi_mass);
+    _tree->SetBranchAddress("BToKpipi_Kpi_pt",&BToKpipi_Kpi_pt);
     _tree->SetBranchAddress("BToKpipi_mass",&BToKpipi_mass);
     _tree->SetBranchAddress("BToKpipi_piBu_charge",&BToKpipi_piBu_charge);
     _tree->SetBranchAddress("BToKpipi_piBu_pt",&BToKpipi_piBu_pt);
     _tree->SetBranchAddress("BToKpipi_piBu_eta",&BToKpipi_piBu_eta);
     _tree->SetBranchAddress("BToKpipi_piBu_phi",&BToKpipi_piBu_phi);
+    _tree->SetBranchAddress("BToKpipi_kaon_charge",&BToKpipi_kaon_charge);
     _tree->SetBranchAddress("BToKpipi_kaon_pt",&BToKpipi_kaon_pt);
     _tree->SetBranchAddress("BToKpipi_kaon_eta",&BToKpipi_kaon_eta);
     _tree->SetBranchAddress("BToKpipi_kaon_phi",&BToKpipi_kaon_phi);
+    _tree->SetBranchAddress("BToKpipi_kaon_dz",&BToKpipi_kaon_dz);
     _tree->SetBranchAddress("BToKpipi_piD0_pt",&BToKpipi_piD0_pt);
     _tree->SetBranchAddress("BToKpipi_piD0_eta",&BToKpipi_piD0_eta);
     _tree->SetBranchAddress("BToKpipi_piD0_phi",&BToKpipi_piD0_phi);
+    _tree->SetBranchAddress("BToKpipi_piD0_dz",&BToKpipi_piD0_dz);
   }
 
   int BToKmumu_info = _tree->SetBranchAddress("nBToKmumu",&nBToKmumu);
