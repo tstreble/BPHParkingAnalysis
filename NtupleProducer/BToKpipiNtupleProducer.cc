@@ -23,6 +23,13 @@ float BuMass_ = 5.279;
 float KaonMass_ = 0.493677;
 float PionMass_ = 0.139570;
 
+float Kpi_CL_vtx_Min_ = 0.05;
+float Kpi_abs_dz_Max_ = 1;
+float Kpi_pt_Min_ = 5.;
+float B_CL_vtx_Min_ = 0.;
+float B_Lxy_Min_ = 5.;
+float B_cosAlpha_Min_ = 0.999;
+
 
 int main(int argc, char** argv) {
 
@@ -127,6 +134,7 @@ int main(int argc, char** argv) {
   int _GenPart_KFromD0_index = -1;
   int _GenPart_piFromD0_index = -1;
   int _BToKpipi_gen_index = -1;
+  int _BToKpipi_D0_gen_index = -1; //In case we can find at least the D0 candidates matched
 
   if(isMC){
 
@@ -136,6 +144,7 @@ int main(int argc, char** argv) {
     tree_new->Branch("GenPart_KFromD0_index",&_GenPart_KFromD0_index,"GenPart_KFromD0_index/I");
     tree_new->Branch("GenPart_piFromD0_index",&_GenPart_piFromD0_index,"GenPart_piFromD0_index/I");
     tree_new->Branch("BToKpipi_gen_index",&_BToKpipi_gen_index,"BToKpipi_gen_index/I");
+    tree_new->Branch("BToKpipi_D0_gen_index",&_BToKpipi_D0_gen_index,"BToKpipi_D0_gen_index/I");
 
   }
 
@@ -184,6 +193,7 @@ int main(int argc, char** argv) {
     _GenPart_KFromD0_index = -1;
     _GenPart_piFromD0_index = -1;
     _BToKpipi_gen_index = -1;
+    _BToKpipi_D0_gen_index = -1;
 
     _HLT_Mu8p5_IP3p5 = false;
     _HLT_Mu10p5_IP3p5 = false;
@@ -286,20 +296,32 @@ int main(int argc, char** argv) {
 
       if(tree->BToKpipi_piBu_charge[i_BToKpipi]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKpipi with opposite charge to muon
       if(tree->BToKpipi_piBu_charge[i_BToKpipi]*tree->BToKpipi_kaon_charge[i_BToKpipi]<0) continue; //Remove D0/D0bar suppressed decay
-      
-      float Kpi_mass = tree->BToKpipi_Kpi_mass[i_BToKpipi];
+
       float Kpi_CL_vtx = tree->BToKpipi_Kpi_CL_vtx[i_BToKpipi];
-	
+      float delta_dz = fabs(tree->BToKpipi_kaon_dz[i_BToKpipi]-tree->BToKpipi_piD0_dz[i_BToKpipi]);
+      float Kpi_pt = tree->BToKpipi_Kpi_pt[i_BToKpipi];
+      
+      float B_CL_vtx = tree->BToKpipi_CL_vtx[i_BToKpipi];
+      float B_Lxy = tree->BToKpipi_Lxy[i_BToKpipi];
+      float B_cosAlpha = tree->BToKpipi_cosAlpha[i_BToKpipi];
+
+      if( Kpi_CL_vtx < Kpi_CL_vtx_Min_) continue; //cut on Kpi vtx refitting
+      if(delta_dz > Kpi_abs_dz_Max_) continue;
+      if(Kpi_pt < Kpi_pt_Min_) continue;
+
+      if(B_CL_vtx <= B_CL_vtx_Min_) continue;
+      if(B_Lxy < B_Lxy_Min_) continue;
+      if(B_cosAlpha < B_cosAlpha_Min_) continue;
+
+      float Kpi_mass = tree->BToKpipi_Kpi_mass[i_BToKpipi];
+
       //D0 selection
       if( !(best_D0_mass < 0. 
 	    || abs(best_D0_mass-Kpi_mass)<1e-3 //Several BToKpipi can share the same D0->Kpi
 	    || abs(Kpi_mass-D0Mass_) < abs(best_D0_mass-D0Mass_)) )       
 	continue;
 
-      //if( Kpi_CL_vtx < min_CL) continue; //cut on Kpi vtx refitting
-
       float B_mass = tree->BToKpipi_mass[i_BToKpipi];
-      float B_CL_vtx = tree->BToKpipi_CL_vtx[i_BToKpipi];
       
       if( !(best_Bu_mass < 0. 
 	    || abs(B_mass-BuMass_) < abs(best_Bu_mass-BuMass_)) )       
@@ -412,7 +434,12 @@ int main(int argc, char** argv) {
 	if( dR_piFromB<0.1 && dR_KFromD0<0.1 && dR_piFromD0<0.1
 	    && (best_dR<0. || dR_tot<best_dR) ){
 	  best_dR = dR_tot;
-	  _BToKpipi_gen_index = i_BToKpipi;	  
+	  _BToKpipi_gen_index = i_BToKpipi;
+	  _BToKpipi_D0_gen_index = i_BToKpipi;
+	}
+
+	else if(dR_KFromD0<0.1 && dR_piFromD0<0.1){
+	  _BToKpipi_D0_gen_index = i_BToKpipi;
 	}
 
       }
