@@ -8,7 +8,7 @@ cd CMSSW_10_1_5/src/
 cmsenv
 
 git clone https://github.com/ICBPHCMS/BPHParkingAnalysis.git
-cd NtupleProducer
+cd BPHParkingAnalysis/NtupleProducer
 git checkout master
 ```
 
