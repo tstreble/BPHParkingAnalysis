@@ -285,6 +285,7 @@ int main(int argc, char** argv) {
     for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){            
 
       if(tree->BToKpipi_piBu_charge[i_BToKpipi]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKpipi with opposite charge to muon
+      if(tree->BToKpipi_piBu_charge[i_BToKpipi]*tree->BToKpipi_kaon_charge[i_BToKpipi]<0) continue; //Remove D0/D0bar suppressed decay
       
       float Kpi_mass = tree->BToKpipi_Kpi_mass[i_BToKpipi];
       float Kpi_CL_vtx = tree->BToKpipi_Kpi_CL_vtx[i_BToKpipi];
