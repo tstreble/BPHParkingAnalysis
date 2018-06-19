@@ -188,6 +188,7 @@ void NanoAODTree::Init(TChain* tree)
   _tree->SetBranchAddress("event",&event);
 
   _tree->SetBranchAddress("nMuon",&nMuon);  
+  _tree->SetBranchAddress("Muon_charge",&Muon_charge);  
   _tree->SetBranchAddress("Muon_pt",&Muon_pt);  
   _tree->SetBranchAddress("Muon_eta",&Muon_eta);
   _tree->SetBranchAddress("Muon_phi",&Muon_phi);
