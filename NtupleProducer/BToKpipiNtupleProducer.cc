@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
   }
 
 
-  string sign="OS";
+  string sign;
   for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--sign") {
       if (i + 1 < argc) {
