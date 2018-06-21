@@ -339,9 +339,9 @@ int main(int argc, char** argv) {
       float Kpi_mass = tree->BToKpipi_Kpi_mass[i_BToKpipi];
 
       //D0 selection
-      if( !(best_D0_mass < 0. 
-	    || abs(best_D0_mass-Kpi_mass)<1e-3 //Several BToKpipi can share the same D0->Kpi
-	    || abs(Kpi_mass-D0Mass_) < abs(best_D0_mass-D0Mass_)) )       
+      if ( !(best_CL_D0 < 0.
+	     || abs(best_CL_D0-Kpi_CL_vtx)<1e-3 //Several BToKpipi can share the same D0->Kpi
+	     || Kpi_CL_vtx > best_CL_D0) )
 	continue;
 
       float B_mass = tree->BToKpipi_mass[i_BToKpipi];
@@ -350,7 +350,7 @@ int main(int argc, char** argv) {
 	    || abs(B_mass-BuMass_) < abs(best_Bu_mass-BuMass_)) )       
 	continue;
       
-      best_D0_mass = Kpi_mass;
+      best_CL_D0 = Kpi_CL_vtx;
       best_Bu_mass = B_mass;
       _BToKpipi_sel_index = i_BToKpipi;
 
