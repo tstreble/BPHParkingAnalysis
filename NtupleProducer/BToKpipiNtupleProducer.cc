@@ -23,6 +23,8 @@ float BuMass_ = 5.279;
 float KaonMass_ = 0.493677;
 float PionMass_ = 0.139570;
 
+float PFCand_pt_Min_ = 2.;
+float piBu_pt_Min_ = 2.;
 float Kpi_CL_vtx_Min_ = 0.05;
 float Kpi_abs_dz_Max_ = 1;
 float Kpi_pt_Min_ = 5.;
@@ -93,7 +95,7 @@ int main(int argc, char** argv) {
   }
 
 
-  string sign="OS";
+  string sign;
   for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--sign") {
       if (i + 1 < argc) {
@@ -319,6 +321,12 @@ int main(int argc, char** argv) {
       float B_CL_vtx = tree->BToKpipi_CL_vtx[i_BToKpipi];
       float B_Lxy = tree->BToKpipi_Lxy[i_BToKpipi];
       float B_cosAlpha = tree->BToKpipi_cosAlpha[i_BToKpipi];
+
+      float piBu_pt = tree->BToKpipi_piBu_pt[i_BToKpipi];
+      float piD0_pt = tree->BToKpipi_piD0_pt[i_BToKpipi];
+      float kaon_pt = tree->BToKpipi_piD0_pt[i_BToKpipi];
+
+      if( piBu_pt < piBu_pt_Min_ || piD0_pt < PFCand_pt_Min_ || kaon_pt < PFCand_pt_Min_ ) continue;
 
       if( Kpi_CL_vtx < Kpi_CL_vtx_Min_) continue; //cut on Kpi vtx refitting
       if(delta_dz > Kpi_abs_dz_Max_) continue;
