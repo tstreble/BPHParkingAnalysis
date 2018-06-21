@@ -305,7 +305,7 @@ int main(int argc, char** argv) {
     //Select the BToKpipi candidate with reco criteria
 
     int nBToKpipi = tree->nBToKpipi;
-    float best_D0_mass = -1.;
+    float best_CL_D0 = -1.;
     float best_Bu_mass = -1.;
 
     for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){            
