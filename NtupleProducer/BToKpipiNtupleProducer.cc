@@ -305,8 +305,8 @@ int main(int argc, char** argv) {
     //Select the BToKpipi candidate with reco criteria
 
     int nBToKpipi = tree->nBToKpipi;
-    float best_D0_mass = -1.;
-    float best_Bu_mass = -1.;
+    float best_CL_D0 = -1.;
+    float best_CL_Bu = -1.;
 
     for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){            
 
@@ -336,22 +336,14 @@ int main(int argc, char** argv) {
       if(B_Lxy < B_Lxy_Min_) continue;
       if(B_cosAlpha < B_cosAlpha_Min_) continue;
 
-      float Kpi_mass = tree->BToKpipi_Kpi_mass[i_BToKpipi];
-
-      //D0 selection
-      if( !(best_D0_mass < 0. 
-	    || abs(best_D0_mass-Kpi_mass)<1e-3 //Several BToKpipi can share the same D0->Kpi
-	    || abs(Kpi_mass-D0Mass_) < abs(best_D0_mass-D0Mass_)) )       
-	continue;
-
-      float B_mass = tree->BToKpipi_mass[i_BToKpipi];
-      
-      if( !(best_Bu_mass < 0. 
-	    || abs(B_mass-BuMass_) < abs(best_Bu_mass-BuMass_)) )       
+      //B+ D0 selection
+      if ( !(best_CL_D0 < 0.
+	     || abs(best_CL_D0-Kpi_CL_vtx)<1e-3 && B_CL_vtx > best_CL_Bu //Several BToKpipi can share the same D0->Kpi, pick the best triplet out of those
+	     || (abs(best_CL_D0-Kpi_CL_vtx)>1e-3 && Kpi_CL_vtx>best_CL_D0) ) )
 	continue;
       
-      best_D0_mass = Kpi_mass;
-      best_Bu_mass = B_mass;
+      best_CL_D0 = Kpi_CL_vtx;
+      best_CL_Bu = B_CL_vtx;
       _BToKpipi_sel_index = i_BToKpipi;
 
     }
