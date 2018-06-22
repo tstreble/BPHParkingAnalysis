@@ -306,7 +306,7 @@ int main(int argc, char** argv) {
 
     int nBToKpipi = tree->nBToKpipi;
     float best_CL_D0 = -1.;
-    float best_Bu_mass = -1.;
+    float best_CL_Bu = -1.;
 
     for(int i_BToKpipi=0; i_BToKpipi<nBToKpipi; i_BToKpipi++){            
 
@@ -336,8 +336,6 @@ int main(int argc, char** argv) {
       if(B_Lxy < B_Lxy_Min_) continue;
       if(B_cosAlpha < B_cosAlpha_Min_) continue;
 
-      float Kpi_mass = tree->BToKpipi_Kpi_mass[i_BToKpipi];
-
       //B+ D0 selection
       if ( !(best_CL_D0 < 0.
 	     || abs(best_CL_D0-Kpi_CL_vtx)<1e-3 && B_CL_vtx > best_CL_Bu //Several BToKpipi can share the same D0->Kpi, pick the best triplet out of those
@@ -345,7 +343,7 @@ int main(int argc, char** argv) {
 	continue;
       
       best_CL_D0 = Kpi_CL_vtx;
-      best_CL_B = B_CL_vtx;
+      best_CL_Bu = B_CL_vtx;
       _BToKpipi_sel_index = i_BToKpipi;
 
     }
