@@ -324,7 +324,7 @@ int main(int argc, char** argv) {
 
       float piBu_pt = tree->BToKpipi_piBu_pt[i_BToKpipi];
       float piD0_pt = tree->BToKpipi_piD0_pt[i_BToKpipi];
-      float kaon_pt = tree->BToKpipi_piD0_pt[i_BToKpipi];
+      float kaon_pt = tree->BToKpipi_kaon_pt[i_BToKpipi];
 
       if( piBu_pt < piBu_pt_Min_ || piD0_pt < PFCand_pt_Min_ || kaon_pt < PFCand_pt_Min_ ) continue;
 
