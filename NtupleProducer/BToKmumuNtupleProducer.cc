@@ -41,6 +41,20 @@ int main(int argc, char** argv) {
   }
 
 
+  float genMuPtCut = -1.;
+  for (int i = 1; i < argc; ++i) {
+    if(std::string(argv[i]) == "--genMuPtCut") {
+      if (i + 1 < argc) {
+	genMuPtCut = std::stof(argv[i+1]);
+	break;
+      } else {
+	std::cerr << "--genMuPtCut option requires one argument." << std::endl;
+	return 1;
+      }
+    }
+  }
+
+
   string output;
   for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--output") {
@@ -146,6 +160,8 @@ int main(int argc, char** argv) {
   bool _HLT_Mu8_IP3 = false;
   bool _HLT_BPHParking = false;
 
+  bool _Muon_isHLT_BPHParking[kMuonMax];
+
   if(isBPHParking){
 
     tree_new->Branch("HLT_Mu8p5_IP3p5",&_HLT_Mu8p5_IP3p5,"HLT_Mu8p5_IP3p5/O");
@@ -153,6 +169,8 @@ int main(int argc, char** argv) {
     tree_new->Branch("HLT_Mu9_IP6",&_HLT_Mu9_IP6,"HLT_Mu9_IP6/O");
     tree_new->Branch("HLT_Mu8_IP3",&_HLT_Mu8_IP3,"HLT_Mu8_IP3/O");
     tree_new->Branch("HLT_BPHParking",&_HLT_BPHParking,"HLT_BPHParking/O");
+
+    tree_new->Branch("Muon_isHLT_BPHParking",_Muon_isHLT_BPHParking,"Muon_isHLT_BPHParking[nMuon]/O");
 
   }
 
@@ -246,13 +264,12 @@ int main(int argc, char** argv) {
 	}
 
 	isMuSel &= (_HLT_BPHParking && isTrigMatched);
+	_Muon_isHLT_BPHParking[i_mu] = isTrigMatched;
 
       }
 
-      //Should implement something to avoid overlap with BToKmm final state (nMuon<2 won't work because only muons with pT>3 GeV are stored in default NanoAOD)
-      if( isMuSel ){
+      if( isMuSel && _Muon_sel_index<0){ //Take leading muon passing the selections (muons are pt-ordered)
 	_Muon_sel_index = i_mu;
-	break; //Take leading muon passing the selections (muons are pt-ordered)
       }
 
     }
@@ -402,13 +419,13 @@ int main(int argc, char** argv) {
 			      tree->BToKmumu_kaon_phi[i_BToKmumu],
 			      KaonMass_);
 	mu1_tlv.SetPtEtaPhiM(tree->BToKmumu_mu1_pt[i_BToKmumu],
-			      tree->BToKmumu_mu1_eta[i_BToKmumu],
-			      tree->BToKmumu_mu1_phi[i_BToKmumu],
-			      MuonMass_);
+			     tree->BToKmumu_mu1_eta[i_BToKmumu],
+			     tree->BToKmumu_mu1_phi[i_BToKmumu],
+			     MuonMass_);
 	mu2_tlv.SetPtEtaPhiM(tree->BToKmumu_mu2_pt[i_BToKmumu],
-			      tree->BToKmumu_mu2_eta[i_BToKmumu],
-			      tree->BToKmumu_mu2_phi[i_BToKmumu],
-			      MuonMass_);
+			     tree->BToKmumu_mu2_eta[i_BToKmumu],
+			     tree->BToKmumu_mu2_phi[i_BToKmumu],
+			     MuonMass_);
 
 	float dR_KFromB = kaon_tlv.DeltaR(gen_KFromB_tlv);
 	float dR_mu1FromJPsi = min(mu1_tlv.DeltaR(gen_mu1FromJPsi_tlv),mu2_tlv.DeltaR(gen_mu1FromJPsi_tlv));
@@ -424,6 +441,31 @@ int main(int argc, char** argv) {
 	}
 
       }
+
+      bool isTagMuonHighPt = false;
+
+      for(int i_gen=0; i_gen<nGenPart; i_gen++){
+
+	if(i_gen==_GenPart_mu1FromJPsi_index || i_gen==_GenPart_mu2FromJPsi_index) continue;
+
+	int pdgId = tree->GenPart_pdgId[i_gen];
+	if(abs(pdgId)!=13) continue;
+
+	TLorentzVector gen_tagMu_tlv;
+	gen_tagMu_tlv.SetPtEtaPhiM(tree->GenPart_pt[i_gen],
+				     tree->GenPart_eta[i_gen],
+				     tree->GenPart_phi[i_gen],
+				     MuonMass_);
+
+	if(gen_tagMu_tlv.DeltaR(gen_mu1FromJPsi_tlv)>0.1 && gen_tagMu_tlv.DeltaR(gen_mu2FromJPsi_tlv)>0.1 //In case there are several copies of same muon (with FSR for instance)
+	   && gen_tagMu_tlv.Pt()>genMuPtCut){
+	  isTagMuonHighPt = true;
+	  break;
+	}
+
+      }
+
+      if(!isTagMuonHighPt) continue; //Skip events where the gen filter in MC has been applied to the probe muon
 
     }
 
