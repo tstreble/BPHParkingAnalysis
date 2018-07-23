@@ -244,7 +244,7 @@ int main(int argc, char** argv) {
 
       }
 
-      //Should implement something to avoid overlap with BToKmm final state (nMuon>1 won't work because only muons with pT>3 GeV are stored in default NanoAOD)
+      //Should implement something to avoid overlap with BToKmm final state
 
       if( isMuSel ){
 	_Muon_sel_index = i_mu;
@@ -262,34 +262,19 @@ int main(int argc, char** argv) {
     //Select the BToKee candidate with reco criteria
 
     int nBToKee = tree->nBToKee;
-    float best_JPsi_mass = -1.;
-    float best_Bu_mass = -1.;
+    float best_B_CL_vtx = -1.;
 
     for(int i_BToKee=0; i_BToKee<nBToKee; i_BToKee++){            
 
-      if(tree->BToKee_kaon_charge[i_BToKee]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKee with opposite charge to muon
+      //Disabled for now
+      //if(tree->BToKee_kaon_charge[i_BToKee]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKee with opposite charge to muon
       
-      float ee_mass = tree->BToKee_ee_mass[i_BToKee];
-      float ee_CL_vtx = tree->BToKee_ee_CL_vtx[i_BToKee];
-	
-      //JPsi selection
-      if( !(best_JPsi_mass < 0. 
-	    || abs(best_JPsi_mass-ee_mass)<1e-3 //Several BToKee can share the same JPsi->ee
-	    || abs(ee_mass-JPsiMass_) < abs(best_JPsi_mass-JPsiMass_)) )       
-	continue;
-
-      //if( ee_CL_vtx < min_CL) continue; //cut on ee vtx refitting
-
-      float B_mass = tree->BToKee_mass[i_BToKee];
       float B_CL_vtx = tree->BToKee_CL_vtx[i_BToKee];
       
-      if( !(best_Bu_mass < 0. 
-	    || abs(B_mass-BuMass_) < abs(best_Bu_mass-BuMass_)) )       
-	continue;
-      
-      best_JPsi_mass = ee_mass;
-      best_Bu_mass = B_mass;
-      _BToKee_sel_index = i_BToKee;
+      if( best_B_CL_vtx < 0. || B_CL_vtx>best_B_CL_vtx ){      
+	best_B_CL_vtx = B_CL_vtx;
+	_BToKee_sel_index = i_BToKee;
+      }
 
     }
 
