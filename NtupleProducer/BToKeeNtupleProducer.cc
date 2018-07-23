@@ -145,6 +145,9 @@ int main(int argc, char** argv) {
   bool _HLT_Mu8_IP3 = false;
   bool _HLT_BPHParking = false;
 
+  bool _Muon_isHLT_BPHParking[kMuonMax];
+
+
   if(isBPHParking){
 
     tree_new->Branch("HLT_Mu8p5_IP3p5",&_HLT_Mu8p5_IP3p5,"HLT_Mu8p5_IP3p5/O");
@@ -152,6 +155,8 @@ int main(int argc, char** argv) {
     tree_new->Branch("HLT_Mu9_IP6",&_HLT_Mu9_IP6,"HLT_Mu9_IP6/O");
     tree_new->Branch("HLT_Mu8_IP3",&_HLT_Mu8_IP3,"HLT_Mu8_IP3/O");
     tree_new->Branch("HLT_BPHParking",&_HLT_BPHParking,"HLT_BPHParking/O");
+
+    tree_new->Branch("Muon_isHLT_BPHParking",_Muon_isHLT_BPHParking,"Muon_isHLT_BPHParking[nMuon]/O");
 
   }
 
@@ -182,15 +187,11 @@ int main(int argc, char** argv) {
     _HLT_Mu8_IP3 = false;
     _HLT_BPHParking = false;
 
-    //Select the muon
+    //Trigger selection + matching
 
     int nMuon = tree->nMuon;
 
     for(int i_mu=0; i_mu<nMuon; i_mu++){
-
-      bool isMuSel = tree->Muon_softId[i_mu];
-
-      //Trigger selection + matching
 
       //Only trigger for isBPHParking for now
       if(isBPHParking){
@@ -240,24 +241,12 @@ int main(int argc, char** argv) {
 
 	}
 
-	isMuSel &= (_HLT_BPHParking && isTrigMatched);
+	_Muon_isHLT_BPHParking[i_mu] = isTrigMatched;
 
-      }
-
-      //Should implement something to avoid overlap with BToKmm final state
-
-      if( isMuSel ){
-	_Muon_sel_index = i_mu;
-	break; //Take leading muon passing the selections (muons are pt-ordered)
       }
 
     }
 
-    if(_Muon_sel_index <0){
-      //Let's skim events which do not have a tag muon (including trigger)
-      //tree_new->Fill();
-      continue;
-    }
 
     //Select the BToKee candidate with reco criteria
 
@@ -384,7 +373,40 @@ int main(int argc, char** argv) {
 
       }
 
+
+     //Require probe muon passing soft ID for Acc.xEff.
+
+      bool isProbeMuonSoftID = false;
+      for(int i_mu=0; i_mu<nMuon; i_mu++){
+
+	if(tree->Muon_softId[i_mu]){
+	  isProbeMuonSoftID = true;
+	  _Muon_sel_index = i_mu;
+	  break;
+	}
+      }
+
+      if(!isProbeMuonSoftID) continue; //Skip events where there is no probe muon passing the soft ID
+
+
     }
+
+
+    //Require probe muon passing soft ID for Acc.xEff.
+    //+ trigger-matched in BPHParking dataset
+
+    bool isProbeMuonSoftID = false;
+    for(int i_mu=0; i_mu<nMuon; i_mu++){
+
+      if(tree->Muon_softId[i_mu] && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
+	isProbeMuonSoftID = true;
+	_Muon_sel_index = i_mu;
+	break;
+      }
+    }
+
+    if(!isProbeMuonSoftID) continue; //Skip events where there is no probe muon passing the soft ID
+
 
     tree_new->Fill();
 
