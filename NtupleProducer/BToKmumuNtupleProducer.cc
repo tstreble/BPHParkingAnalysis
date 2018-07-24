@@ -138,11 +138,14 @@ int main(int argc, char** argv) {
 
   //New branches
 
-  int _Muon_sel_index = -1;
   int _BToKmumu_sel_index = -1;
+  int _Muon_sel_index = -1; //Probe muon with selection algo.
+  int _Muon_probe_index = -1; //Probe muon for Acc.xEff. = _Muon_sel_index in data
 
-  tree_new->Branch("Muon_sel_index",&_Muon_sel_index,"Muon_sel_index/I");
   tree_new->Branch("BToKmumu_sel_index",&_BToKmumu_sel_index,"BToKmumu_sel_index/I");
+  tree_new->Branch("Muon_sel_index",&_Muon_sel_index,"Muon_sel_index/I");
+  tree_new->Branch("Muon_probe_index",&_Muon_probe_index,"Muon_probe_index/I");
+
 
   int _GenPart_BToKmumu_index = -1;
   int _GenPart_JPsiFromB_index = -1;
@@ -199,8 +202,9 @@ int main(int argc, char** argv) {
 
     if(iEntry%10000==0) cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
 
-    _Muon_sel_index = -1;
     _BToKmumu_sel_index = -1;
+    _Muon_sel_index = -1;
+    _Muon_probe_index = -1;
 
     _GenPart_BToKmumu_index = -1;
     _GenPart_JPsiFromB_index = -1;
@@ -217,21 +221,14 @@ int main(int argc, char** argv) {
     _HLT_Mu8_IP3 = false;
     _HLT_BPHParking = false;
 
-    //Select the muon
 
     int nMuon = tree->nMuon;
 
     for(int i_mu=0; i_mu<nMuon; i_mu++){
 
-      bool isMuSel = tree->Muon_softId[i_mu];
-
       //Trigger selection + matching
 
       //Only for isBPHParking for now
-      if(isMC){
-	isMuSel = true;
-      }
-
       if(isBPHParking){
 
 	_HLT_Mu8p5_IP3p5 = tree->HLT_Mu8p5_IP3p5_part0
@@ -279,78 +276,54 @@ int main(int argc, char** argv) {
 
 	}
 
-	isMuSel &= (_HLT_BPHParking && isTrigMatched);
 	_Muon_isHLT_BPHParking[i_mu] = isTrigMatched;
 
       }
 
-      if( isMuSel && _Muon_sel_index<0){ //Take leading muon passing the selections (muons are pt-ordered)
-	_Muon_sel_index = i_mu;
+    }
+
+
+    //Select the BToKmumu candidate with reco criteria
+
+    int nBToKmumu = tree->nBToKmumu;
+    float best_B_CL_vtx = -1.;
+
+    for(int i_BToKmumu=0; i_BToKmumu<nBToKmumu; i_BToKmumu++){            
+
+      //Disabled for now
+      //if(tree->BToKmumu_kaon_charge[i_BToKmumu]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKmumu with opposite charge to muon
+      
+      float B_CL_vtx = tree->BToKmumu_CL_vtx[i_BToKmumu];
+      
+      if( best_B_CL_vtx < 0. || B_CL_vtx>best_B_CL_vtx ){
+	best_B_CL_vtx = B_CL_vtx;
+	_BToKmumu_sel_index = i_BToKmumu;
+      }
+
+    }
+
+    //Take as probe muon leading soft ID muon + trigger-matched if BPHParking data
+
+    if(_BToKmumu_sel_index>=0){
+      
+      for(int i_mu=0; i_mu<nMuon; i_mu++){
+
+	if(i_mu==tree->BToKmumu_mu1_index[_BToKmumu_sel_index] || i_mu==tree->BToKmumu_mu2_index[_BToKmumu_sel_index]) continue;
+
+	if(tree->Muon_softId[i_mu]
+	   && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
+	  _Muon_sel_index = i_mu;
+	  break;
+	}
+
       }
 
     }
 
 
-    if(_Muon_sel_index <0){
-      //Let's skim events which do not have a tag muon (including trigger)
-      //tree_new->Fill();
-      continue;
-    }
-
-    //Select the BToKmumu candidate with reco criteria
-
-    int nBToKmumu = tree->nBToKmumu;
-    float best_JPsi_mass = -1.;
-    float best_Bu_mass = -1.;
-
-    for(int i_BToKmumu=0; i_BToKmumu<nBToKmumu; i_BToKmumu++){            
-
-      if(tree->BToKmumu_kaon_charge[i_BToKmumu]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKmumu with opposite charge to muon
-      
-      TLorentzVector mu_sel;
-      TLorentzVector mu1;
-      TLorentzVector mu2;
-
-      mu_sel.SetPtEtaPhiM(tree->Muon_pt[_Muon_sel_index],
-			  tree->Muon_eta[_Muon_sel_index],
-			  tree->Muon_phi[_Muon_sel_index],
-			  tree->Muon_mass[_Muon_sel_index]);
-
-      mu1.SetPtEtaPhiM(tree->BToKmumu_mu1_pt[i_BToKmumu],
-		       tree->BToKmumu_mu1_eta[i_BToKmumu],
-		       tree->BToKmumu_mu1_phi[i_BToKmumu],
-		       MuonMass_);
-
-      mu2.SetPtEtaPhiM(tree->BToKmumu_mu2_pt[i_BToKmumu],
-		       tree->BToKmumu_mu2_eta[i_BToKmumu],
-		       tree->BToKmumu_mu2_phi[i_BToKmumu],
-		       MuonMass_);
-
-      if(mu1.DeltaR(mu_sel)<0.1 || mu2.DeltaR(mu_sel)<0.1) continue; //Avoid any ambibuity between tag muon and probe muons
-
-      float mumu_mass = tree->BToKmumu_mumu_mass[i_BToKmumu];
-      float mumu_CL_vtx = tree->BToKmumu_mumu_CL_vtx[i_BToKmumu];
-	
-      //JPsi selection
-      if( !(best_JPsi_mass < 0. 
-	    || abs(best_JPsi_mass-mumu_mass)<1e-3 //Several BToKmumu can share the same JPsi->mumu
-	    || abs(mumu_mass-JPsiMass_) < abs(best_JPsi_mass-JPsiMass_)) )       
-	continue;
-
-      //if( mumu_CL_vtx < min_CL) continue; //cut on mumu vtx refitting
-
-      float B_mass = tree->BToKmumu_mass[i_BToKmumu];
-      float B_CL_vtx = tree->BToKmumu_CL_vtx[i_BToKmumu];
-      
-      if( !(best_Bu_mass < 0. 
-	    || abs(B_mass-BuMass_) < abs(best_Bu_mass-BuMass_)) )       
-	continue;
-      
-      best_JPsi_mass = mumu_mass;
-      best_Bu_mass = B_mass;
-      _BToKmumu_sel_index = i_BToKmumu;
-
-    }
+    //!!! Can have selected B->Kmumu even without additional probe muons
+    //Needs to ask both BToKmumu_sel_index>=0 && Muon_sel_index>=0 for analysis on probe side
+    //BToKmumu_sel_index not reset to -1 for potential analysis of the probe side
 
 
     
@@ -511,6 +484,8 @@ int main(int argc, char** argv) {
       }
 
 
+      //Gen muon pt filter on probe
+
       bool isTagMuonHighPt = false;
 
       for(int i_gen=0; i_gen<nGenPart; i_gen++){
@@ -536,6 +511,29 @@ int main(int argc, char** argv) {
 
       if(!isTagMuonHighPt) continue; //Skip events where the gen filter in MC has been applied to the probe muon
 
+
+
+      //Require additional probe muon passing soft ID for Acc.xEff. symmetric with electrons
+
+      bool isProbeMuonSoftID = false;
+      for(int i_mu=0; i_mu<nMuon; i_mu++){
+
+	if(i_mu==_Muon_mu1FromB_index || i_mu==_Muon_mu2FromB_index) continue;
+	if(tree->Muon_softId[i_mu]){
+	  isProbeMuonSoftID = true;
+	  _Muon_probe_index = i_mu;
+	  break;
+	}
+
+      }
+
+      if(!isProbeMuonSoftID) continue; //Skip events where there is no probe muon passing the soft ID
+
+    }
+
+
+    if(isBPHParking){
+      _Muon_probe_index = _Muon_sel_index;
     }
 
 
