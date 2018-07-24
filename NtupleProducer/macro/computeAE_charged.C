@@ -55,17 +55,16 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
   std::cout << " #moun tag events: nnreso = " << nMuonTag_nonReso << " resonant = " << nMuonTag_Reso << std::endl;
 
   //if false => move to reco ee invariant mass bins
-  bool wrtGenMass = false;
 
   //selections
   std::string cut_muonTag = "Muon_sel_index != -1";
   // should require that muonTag does not match with gen probes?
-  std::string cut_genAcc = "GenPart_e2FromJPsi_index != -1 && GenPart_pt[GenPart_e2FromJPsi_index] > 1. && GenPart_eta[GenPart_e2FromJPsi_index] > -2.4 && GenPart_eta[GenPart_e2FromJPsi_index] < 2.4 && GenPart_e1FromJPsi_index != -1 && GenPart_pt[GenPart_e1FromJPsi_index] > 1. && GenPart_eta[GenPart_e1FromJPsi_index] > -2.4 && GenPart_eta[GenPart_e1FromJPsi_index] < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && GenPart_eta[GenPart_KFromB_index] > -2.4 && GenPart_eta[GenPart_KFromB_index] < 2.4";
-  std::string cut_genEff = "BToKee_gen_index != -1";
+  std::string cut_genAcc = "GenPart_e2FromB_index != -1 && GenPart_pt[GenPart_e2FromB_index] > 1. && abs(GenPart_eta[GenPart_e2FromB_index]) < 2.4 && GenPart_e1FromB_index != -1 && GenPart_pt[GenPart_e1FromB_index] > 1. && abs(GenPart_eta[GenPart_e1FromB_index]) < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && abs(GenPart_eta[GenPart_KFromB_index]) < 2.4";
+  std::string cut_genEff = "BToKee_gen_index != -1 && BToKee_gen_index == BToKee_sel_index";
   std::string cut_chargeEff = "BToKee_ele1_charge[BToKee_gen_index]*BToKee_ele2_charge[BToKee_gen_index] < 0.";
   std::string cut_alphaEff = "BToKee_cosAlpha[BToKee_gen_index] > 0.99";
   std::string cut_vtxCLEff = "BToKee_CL_vtx[BToKee_gen_index] > 0.1";  
-  std::string cut_DCAEff  = "(BToKee_kaon_DCASig[BToKee_gen_index] > 6 || BToKee_kaon_DCASig[BToKee_gen_index] < -6)";
+  std::string cut_DCAEff  = "abs(BToKee_kaon_DCASig[BToKee_gen_index]) > 6";
 
   std::vector<std::string> eeMassCut;
   std::vector<std::string> eeGenMassCut;
@@ -97,47 +96,25 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
   float nEv_vtxCLEff[6] = {0.};
   float nEv_DCAEff[6] = {0.};
 
-  if(wrtGenMass){
   for(int ij=0; ij<5; ++ij){
-    nEv_muonTag[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_genAcc[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_genEff[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_recoEff[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_chargeEff[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_alphaEff[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_vtxCLEff[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_DCAEff[ij] = t1->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeGenMassCut.at(ij)).c_str());
+    nEv_muonTag[ij] = t1->Draw("Muon_sel_index", (eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_genAcc[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_genEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_recoEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_chargeEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_alphaEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_vtxCLEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_DCAEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
   }
-  nEv_muonTag[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_genAcc[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_genEff[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_recoEff[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_chargeEff[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_alphaEff[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_vtxCLEff[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_DCAEff[5] = t2->Draw("Muon_sel_index", (cut_muonTag+" && "+cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeGenMassCut.at(3)).c_str());
-  }
-  else {
-  for(int ij=0; ij<5; ++ij){
-    nEv_muonTag[ij] = t1->Draw("Muon_sel_index", (eeGenMassCut.at(ij)).c_str());
-    nEv_genAcc[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_genEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(ij)).c_str());
-    nEv_recoEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeMassCut.at(ij)).c_str());
-    nEv_chargeEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeMassCut.at(ij)).c_str());
-    nEv_alphaEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeMassCut.at(ij)).c_str());
-    nEv_vtxCLEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeMassCut.at(ij)).c_str());
-    nEv_DCAEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeMassCut.at(ij)).c_str());
-  }
-  nEv_muonTag[5] = t2->Draw("Muon_sel_index", (eeGenMassCut.at(3)).c_str());
-  nEv_genAcc[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_genEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(3)).c_str());
-  nEv_recoEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeMassCut.at(3)).c_str());
-  nEv_chargeEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeMassCut.at(3)).c_str());
-  nEv_alphaEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeMassCut.at(3)).c_str());
-  nEv_vtxCLEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeMassCut.at(3)).c_str());
-  nEv_DCAEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeMassCut.at(3)).c_str());
-  }
-   
+  nEv_muonTag[5] = t2->Draw("Muon_sel_index", (eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_genAcc[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_genEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_recoEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_chargeEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_alphaEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_vtxCLEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_DCAEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  
 
 
   //upgrate to 2D plot for future or something better than printout
