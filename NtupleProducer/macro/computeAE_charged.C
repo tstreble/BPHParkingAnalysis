@@ -119,15 +119,36 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
 
   //upgrate to 2D plot for future or something better than printout
   for(int ij=0; ij<5; ++ij){
-    std::cout <<        " \n \t  mass bin non-Resonant = " << eeGenMassCut.at(ij) << " \t  Resonant (J/Psi)   \t" << std::endl;
-    std::cout << " muonTag = \t " << nEv_muonTag[ij] << " \t " << nEv_muonTag[5]  << " \t " << std::endl;
-    std::cout << " genAcc = \t " << nEv_genAcc[ij] << " \t " << nEv_genAcc[5] << " \t double ratio = " << (nEv_genAcc[ij]/nEv_muonTag[ij])/(nEv_genAcc[5]/nEv_muonTag[5]) << "\n";
-    std::cout << " x genEff = \t " << nEv_genEff[ij] << " \t " << nEv_genEff[5] << " \t double ratio = " << (nEv_genEff[ij]/nEv_muonTag[ij])/(nEv_genEff[5]/nEv_muonTag[5]) << "\n";
-    std::cout << " x recoEff = \t " << nEv_recoEff[ij] << " \t " << nEv_recoEff[5] << " \t  double ratio = " << (nEv_recoEff[ij]/nEv_muonTag[ij])/(nEv_recoEff[5]/nEv_muonTag[5]) << "\n";
-    std::cout << " x chargeEff = \t " << nEv_chargeEff[ij] << " \t " << nEv_chargeEff[5] << " \t double ratio = " << (nEv_chargeEff[ij]/nEv_muonTag[ij])/(nEv_chargeEff[5]/nEv_muonTag[5]) << "\n";
-    std::cout << " x alphaEff = \t " << nEv_alphaEff[ij] << " \t " << nEv_alphaEff[5] << " \t double ratio = " << (nEv_alphaEff[ij]/nEv_muonTag[ij])/(nEv_alphaEff[5]/nEv_muonTag[5]) << "\n";
-    std::cout << " x vtxCLEff = \t " << nEv_vtxCLEff[ij] << " \t " << nEv_vtxCLEff[5] << " \t double ratio = " << (nEv_vtxCLEff[ij]/nEv_muonTag[ij])/(nEv_vtxCLEff[5]/nEv_muonTag[5]) << "\n";
-    std::cout << " x DCAEff = \t " << nEv_DCAEff[ij] << " \t " << nEv_DCAEff[5] << " \t double ratio = " << (nEv_DCAEff[ij]/nEv_muonTag[ij])/(nEv_DCAEff[5]/nEv_muonTag[5]) << std::endl;
+    std::cout <<        " \n \t  mass bin non-Resonant = " << eeGenMassCut.at(ij) << "\t  \t  Resonant (J/Psi) \t  \t" << std::endl;
+    std::cout << " muonTag = \t " << nEv_muonTag[ij] << "\t  \t " << nEv_muonTag[5]  << " \t \t " << std::endl;
+
+    std::cout << " genAcc = \t " << nEv_genAcc[ij] << " \t /muonTag = " << nEv_genAcc[ij]/nEv_muonTag[ij] 
+	      << " \t "          << nEv_genAcc[5] << " \t  /muonTag = " << nEv_genAcc[5]/nEv_muonTag[5] 
+	      << " \t double ratio = " << (nEv_genAcc[ij]/nEv_muonTag[ij])/(nEv_genAcc[5]/nEv_muonTag[5]) << "\n";
+
+    std::cout << " x genEff = \t " << nEv_genEff[ij] << " \t  /muonTag = " << nEv_genEff[ij]/nEv_muonTag[ij]
+	      << " \t "            << nEv_genEff[5] << " \t  /muonTag = " << nEv_genEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = " << (nEv_genEff[ij]/nEv_muonTag[ij])/(nEv_genEff[5]/nEv_muonTag[5]) << "\n";
+
+    std::cout << " x recoEff = \t " << nEv_recoEff[ij] << " \t  /muonTag = " << nEv_recoEff[ij]/nEv_muonTag[ij]
+	      << " \t "             << nEv_recoEff[5] << " \t  /muonTag = " << nEv_recoEff[5]/nEv_muonTag[5]
+	      << " \t  double ratio = " << (nEv_recoEff[ij]/nEv_muonTag[ij])/(nEv_recoEff[5]/nEv_muonTag[5]) << "\n";
+
+    std::cout << " x chargeEff = \t " << nEv_chargeEff[ij] << " \t  /muonTag = " << nEv_chargeEff[ij]/nEv_muonTag[ij]
+	      << " \t "               << nEv_chargeEff[5] << " \t  /muonTag = " << nEv_chargeEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = " << (nEv_chargeEff[ij]/nEv_muonTag[ij])/(nEv_chargeEff[5]/nEv_muonTag[5]) << "\n";
+
+    std::cout << " x alphaEff = \t " << nEv_alphaEff[ij] << " \t  /muonTag = " << nEv_alphaEff[ij]/nEv_muonTag[ij]
+	      << " \t "              << nEv_alphaEff[5] << " \t  /muonTag = " << nEv_alphaEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = " << (nEv_alphaEff[ij]/nEv_muonTag[ij])/(nEv_alphaEff[5]/nEv_muonTag[5]) << "\n";
+
+    std::cout << " x vtxCLEff = \t " << nEv_vtxCLEff[ij] << " \t  /muonTag = " << nEv_vtxCLEff[ij]/nEv_muonTag[ij]
+	      << " \t "              << nEv_vtxCLEff[5] << " \t  /muonTag = " << nEv_vtxCLEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = " << (nEv_vtxCLEff[ij]/nEv_muonTag[ij])/(nEv_vtxCLEff[5]/nEv_muonTag[5]) << "\n";
+
+    std::cout << " x DCAEff = \t " << nEv_DCAEff[ij] << " \t  /muonTag = " << nEv_DCAEff[ij]/nEv_muonTag[ij]
+	      << " \t "            << nEv_DCAEff[5]  << " \t  /muonTag = " << nEv_DCAEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = " << (nEv_DCAEff[ij]/nEv_muonTag[ij])/(nEv_DCAEff[5]/nEv_muonTag[5]) << std::endl;
   }
 
 
