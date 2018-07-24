@@ -163,8 +163,8 @@ int main(int argc, char** argv) {
   int _GenPart_BToKee_index = -1;
   int _GenPart_JPsiFromB_index = -1;
   int _GenPart_KFromB_index = -1;
-  int _GenPart_e1FromJPsi_index = -1;
-  int _GenPart_e2FromJPsi_index = -1;
+  int _GenPart_e1FromB_index = -1;
+  int _GenPart_e2FromB_index = -1;
   int _BToKee_gen_index = -1;
   float _BToKee_gen_eeMass = -1;
   float _BToKee_gen_mass = -1;
@@ -174,8 +174,8 @@ int main(int argc, char** argv) {
     tree_new->Branch("GenPart_BToKee_index",&_GenPart_BToKee_index,"GenPart_BToKee_index/I");
     tree_new->Branch("GenPart_JPsiFromB_index",&_GenPart_JPsiFromB_index,"GenPart_JPsiFromB_index/I");
     tree_new->Branch("GenPart_KFromB_index",&_GenPart_KFromB_index,"GenPart_KFromB_index/I");
-    tree_new->Branch("GenPart_e1FromJPsi_index",&_GenPart_e1FromJPsi_index,"GenPart_e1FromJPsi_index/I");
-    tree_new->Branch("GenPart_e2FromJPsi_index",&_GenPart_e2FromJPsi_index,"GenPart_e2FromJPsi_index/I");
+    tree_new->Branch("GenPart_e1FromB_index",&_GenPart_e1FromB_index,"GenPart_e1FromB_index/I");
+    tree_new->Branch("GenPart_e2FromB_index",&_GenPart_e2FromB_index,"GenPart_e2FromB_index/I");
     tree_new->Branch("BToKee_gen_index",&_BToKee_gen_index,"BToKee_gen_index/I");
     tree_new->Branch("BToKee_gen_eeMass",&_BToKee_gen_eeMass,"BToKee_gen_eeMass/F");
     tree_new->Branch("BToKee_gen_mass",&_BToKee_gen_mass,"BToKee_gen_mass/F");
@@ -219,8 +219,8 @@ int main(int argc, char** argv) {
     _GenPart_BToKee_index = -1;
     _GenPart_JPsiFromB_index = -1;
     _GenPart_KFromB_index = -1;
-    _GenPart_e1FromJPsi_index = -1;
-    _GenPart_e2FromJPsi_index = -1;
+    _GenPart_e1FromB_index = -1;
+    _GenPart_e2FromB_index = -1;
     _BToKee_gen_index = -1;
     _BToKee_gen_eeMass = -1;
     _BToKee_gen_mass = -1;
@@ -354,11 +354,11 @@ int main(int argc, char** argv) {
 	for(int i_gen=0; i_gen<nGenPart; i_gen++){
 	  int pdgId = tree->GenPart_pdgId[i_gen];
 	  int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	  if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index && _GenPart_e1FromJPsi_index<0)
-	    _GenPart_e1FromJPsi_index = i_gen;
+	  if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index && _GenPart_e1FromB_index<0)
+	    _GenPart_e1FromB_index = i_gen;
 	  else if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index)
-	    _GenPart_e2FromJPsi_index = i_gen;
-	  if(_GenPart_e1FromJPsi_index>=0 && _GenPart_e2FromJPsi_index>=0) break;
+	    _GenPart_e2FromB_index = i_gen;
+	  if(_GenPart_e1FromB_index>=0 && _GenPart_e2FromB_index>=0) break;
 
 	}
       }//resonant
@@ -370,13 +370,13 @@ int main(int argc, char** argv) {
             for(int i_gen=0; i_gen<nGenPart; i_gen++){
               int pdgId = tree->GenPart_pdgId[i_gen];
               int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-              if(abs(pdgId)==11 && mother_index == i_Bu && _GenPart_e1FromJPsi_index<0)
-                _GenPart_e1FromJPsi_index = i_gen;
+              if(abs(pdgId)==11 && mother_index == i_Bu && _GenPart_e1FromB_index<0)
+                _GenPart_e1FromB_index = i_gen;
               else if(abs(pdgId)==11 && mother_index == i_Bu)
-                _GenPart_e2FromJPsi_index = i_gen;
+                _GenPart_e2FromB_index = i_gen;
               else if(abs(pdgId)==321 && mother_index == i_Bu)
                 _GenPart_KFromB_index = i_gen;
-              if(_GenPart_e1FromJPsi_index>=0 && _GenPart_e2FromJPsi_index>=0 && _GenPart_KFromB_index>=0){
+              if(_GenPart_e1FromB_index>=0 && _GenPart_e2FromB_index>=0 && _GenPart_KFromB_index>=0){
                 _GenPart_BToKee_index = i_Bu;
                 break;
               }
@@ -387,33 +387,33 @@ int main(int argc, char** argv) {
       }
 
 
-      //e1FromJPsi stored a leading daughter
-      if(tree->GenPart_pt[_GenPart_e2FromJPsi_index]>tree->GenPart_pt[_GenPart_e1FromJPsi_index]){
-	int i_temp = _GenPart_e1FromJPsi_index;
-	_GenPart_e1FromJPsi_index = _GenPart_e2FromJPsi_index;
-	_GenPart_e2FromJPsi_index = i_temp;
+      //e1FromB stored a leading daughter
+      if(tree->GenPart_pt[_GenPart_e2FromB_index]>tree->GenPart_pt[_GenPart_e1FromB_index]){
+	int i_temp = _GenPart_e1FromB_index;
+	_GenPart_e1FromB_index = _GenPart_e2FromB_index;
+	_GenPart_e2FromB_index = i_temp;
       }
 
 
       TLorentzVector gen_KFromB_tlv;
-      TLorentzVector gen_e1FromJPsi_tlv;
-      TLorentzVector gen_e2FromJPsi_tlv;
+      TLorentzVector gen_e1FromB_tlv;
+      TLorentzVector gen_e2FromB_tlv;
       
       gen_KFromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_KFromB_index],
 				   tree->GenPart_eta[_GenPart_KFromB_index],
 				   tree->GenPart_phi[_GenPart_KFromB_index],
 				   KaonMass_);
-      gen_e1FromJPsi_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e1FromJPsi_index],
-				   tree->GenPart_eta[_GenPart_e1FromJPsi_index],
-				   tree->GenPart_phi[_GenPart_e1FromJPsi_index],
+      gen_e1FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e1FromB_index],
+				   tree->GenPart_eta[_GenPart_e1FromB_index],
+				   tree->GenPart_phi[_GenPart_e1FromB_index],
 				   ElectronMass_);
-      gen_e2FromJPsi_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e2FromJPsi_index],
-				    tree->GenPart_eta[_GenPart_e2FromJPsi_index],
-				    tree->GenPart_phi[_GenPart_e2FromJPsi_index],
+      gen_e2FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e2FromB_index],
+				    tree->GenPart_eta[_GenPart_e2FromB_index],
+				    tree->GenPart_phi[_GenPart_e2FromB_index],
 				    ElectronMass_);
 
-      _BToKee_gen_eeMass = (gen_e1FromJPsi_tlv+gen_e2FromJPsi_tlv).Mag();
-      _BToKee_gen_mass = (gen_e1FromJPsi_tlv+gen_e2FromJPsi_tlv+gen_KFromB_tlv).Mag();
+      _BToKee_gen_eeMass = (gen_e1FromB_tlv+gen_e2FromB_tlv).Mag();
+      _BToKee_gen_mass = (gen_e1FromB_tlv+gen_e2FromB_tlv+gen_KFromB_tlv).Mag();
 
       float best_dR = -1.;
 
@@ -437,13 +437,13 @@ int main(int argc, char** argv) {
 			      ElectronMass_);
 
 	float dR_KFromB = kaon_tlv.DeltaR(gen_KFromB_tlv);
-	float dR_e1FromJPsi = min(ele1_tlv.DeltaR(gen_e1FromJPsi_tlv),ele2_tlv.DeltaR(gen_e1FromJPsi_tlv));
-	float dR_e2FromJPsi = min(ele1_tlv.DeltaR(gen_e2FromJPsi_tlv),ele2_tlv.DeltaR(gen_e2FromJPsi_tlv));
+	float dR_e1FromB = min(ele1_tlv.DeltaR(gen_e1FromB_tlv),ele2_tlv.DeltaR(gen_e1FromB_tlv));
+	float dR_e2FromB = min(ele1_tlv.DeltaR(gen_e2FromB_tlv),ele2_tlv.DeltaR(gen_e2FromB_tlv));
 	//Should check that same objects not selected twice
 
-	float dR_tot = dR_KFromB + dR_e1FromJPsi + dR_e2FromJPsi; //In case several BToKee matches, take the closest one in dR_tot
+	float dR_tot = dR_KFromB + dR_e1FromB + dR_e2FromB; //In case several BToKee matches, take the closest one in dR_tot
 
-	if( dR_KFromB<0.1 && dR_e1FromJPsi<0.1 && dR_e2FromJPsi<0.1
+	if( dR_KFromB<0.1 && dR_e1FromB<0.1 && dR_e2FromB<0.1
 	    && (best_dR<0. || dR_tot<best_dR) ){
 	  best_dR = dR_tot;
 	  _BToKee_gen_index = i_BToKee;	  
