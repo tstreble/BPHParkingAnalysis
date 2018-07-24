@@ -374,21 +374,6 @@ int main(int argc, char** argv) {
       }
 
 
-     //Require probe muon passing soft ID for Acc.xEff.
-
-      bool isProbeMuonSoftID = false;
-      for(int i_mu=0; i_mu<nMuon; i_mu++){
-
-	if(tree->Muon_softId[i_mu]){
-	  isProbeMuonSoftID = true;
-	  _Muon_sel_index = i_mu;
-	  break;
-	}
-      }
-
-      if(!isProbeMuonSoftID) continue; //Skip events where there is no probe muon passing the soft ID
-
-
     }
 
 
@@ -396,7 +381,26 @@ int main(int argc, char** argv) {
     //+ trigger-matched in BPHParking dataset
 
     bool isProbeMuonSoftID = false;
+
+    TLorentzVector ele1_tlv;
+    ele1_tlv.SetPtEtaPhiM(tree->BToKee_ele1_pt[_BToKee_sel_index],
+			  tree->BToKee_ele1_eta[_BToKee_sel_index],
+			  tree->BToKee_ele1_phi[_BToKee_sel_index],
+			  ElectronMass_);
+    TLorentzVector ele2_tlv;
+    ele2_tlv.SetPtEtaPhiM(tree->BToKee_ele2_pt[_BToKee_sel_index],
+			  tree->BToKee_ele2_eta[_BToKee_sel_index],
+			  tree->BToKee_ele2_phi[_BToKee_sel_index],
+			  ElectronMass_);
+
+
     for(int i_mu=0; i_mu<nMuon; i_mu++){
+
+      TLorentzVector mu;
+      mu.SetPtEtaPhiM(tree->Muon_pt[i_mu],tree->Muon_eta[i_mu],tree->Muon_phi[i_mu],tree->Muon_mass[i_mu]);
+
+      //Anti-matching with electrons to be safe
+      if(mu.DeltaR(ele1_tlv)<0.1 || mu.DeltaR(ele2_tlv)<0.1) continue;
 
       if(tree->Muon_softId[i_mu] && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
 	isProbeMuonSoftID = true;
