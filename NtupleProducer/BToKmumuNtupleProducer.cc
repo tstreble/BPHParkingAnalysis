@@ -9,6 +9,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -75,18 +76,31 @@ int main(int argc, char** argv) {
   
 
   string input;
+  string listFilesTXT;
+  bool inputTXT = false;
   for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--input") {
       if (i + 1 < argc) {
-	input = argv[i+1];
-	break;
+        input = argv[i+1];
+        break;
       } else {
 	std::cerr << "--intput option requires one argument." << std::endl;
-	return 1;
-      }      
-    }  
+        return 1;
+      }
+    }
+    else if(std::string(argv[i]) == "--inputTXT") {
+      if (i + 1 < argc) {
+        inputTXT = true;
+        listFilesTXT = argv[i+1];
+        break;
+      } else {
+	std::cerr << "--intputTXT option requires one argument." << std::endl;
+        return 1;
+      }
+    }
   }
-  if(input==""){
+
+  if(listFilesTXT == "" && input == ""){
     std::cerr << "--input argument required" << std::endl;
     return 1;
   }
@@ -128,7 +142,18 @@ int main(int argc, char** argv) {
 
 
   TChain* oldtree = new TChain("Events");
-  oldtree->Add(input.c_str());
+  if(inputTXT){
+    string reader;
+    std::ifstream inFileLong;
+    inFileLong.open(listFilesTXT.c_str(), std::ios::in);
+
+    while(!inFileLong.eof()){
+      inFileLong >> reader;
+      std::cout << " Adding " << reader << std::endl;
+      oldtree->Add(reader.c_str());
+    }
+  }
+  else   oldtree->Add(input.c_str());
   NanoAODTree* tree = new NanoAODTree(oldtree);
 
   TTree* tree_new=new TTree("BToKmumuTree","BToKmumuTree");
@@ -153,6 +178,8 @@ int main(int argc, char** argv) {
   int _GenPart_mu1FromB_index = -1;
   int _GenPart_mu2FromB_index = -1;
   int _BToKmumu_gen_index = -1;
+  float _BToKmumu_gen_mumuMass = -1;
+  float _BToKmumu_gen_mass = -1;
 
   int _Muon_mu1FromB_index = -1;
   int _Muon_mu2FromB_index = -1;
@@ -165,6 +192,8 @@ int main(int argc, char** argv) {
     tree_new->Branch("GenPart_mu1FromB_index",&_GenPart_mu1FromB_index,"GenPart_mu1FromB_index/I");
     tree_new->Branch("GenPart_mu2FromB_index",&_GenPart_mu2FromB_index,"GenPart_mu2FromB_index/I");
     tree_new->Branch("BToKmumu_gen_index",&_BToKmumu_gen_index,"BToKmumu_gen_index/I");
+    tree_new->Branch("BToKmumu_gen_mumuMass",&_BToKmumu_gen_mumuMass,"BToKmumu_gen_mumuMass/F");
+    tree_new->Branch("BToKmumu_gen_mass",&_BToKmumu_gen_mass,"BToKmumu_gen_mass/F");
     tree_new->Branch("Muon_mu1FromB_index",&_Muon_mu1FromB_index,"Muon_mu1FromB_index/I");
     tree_new->Branch("Muon_mu2FromB_index",&_Muon_mu2FromB_index,"Muon_mu2FromB_index/I");
 
@@ -212,6 +241,8 @@ int main(int argc, char** argv) {
     _GenPart_mu1FromB_index = -1;
     _GenPart_mu2FromB_index = -1;
     _BToKmumu_gen_index = -1;
+    _BToKmumu_gen_mumuMass = -1;
+    _BToKmumu_gen_mass = -1;
     _Muon_mu1FromB_index = -1;
     _Muon_mu2FromB_index = -1;
 
@@ -429,6 +460,10 @@ int main(int argc, char** argv) {
 				       tree->GenPart_eta[_GenPart_mu2FromB_index],
 				       tree->GenPart_phi[_GenPart_mu2FromB_index],
 				       MuonMass_);
+
+
+      _BToKmumu_gen_mumuMass = (gen_mu1FromB_tlv+gen_mu2FromB_tlv).Mag();
+      _BToKmumu_gen_mass = (gen_mu1FromB_tlv+gen_mu2FromB_tlv+gen_KFromB_tlv).Mag();
 
       float best_dR = -1.;
 
