@@ -310,7 +310,7 @@ int main(int argc, char** argv) {
 
 	if(i_mu==tree->BToKmumu_mu1_index[_BToKmumu_sel_index] || i_mu==tree->BToKmumu_mu2_index[_BToKmumu_sel_index]) continue;
 
-	if(tree->Muon_softId[i_mu]
+	if(tree->Muon_softId[i_mu] && tree->Muon_pt[i_mu] > 8.
 	   && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
 	  _Muon_sel_index = i_mu;
 	  break;
@@ -519,7 +519,7 @@ int main(int argc, char** argv) {
       for(int i_mu=0; i_mu<nMuon; i_mu++){
 
 	if(i_mu==_Muon_mu1FromB_index || i_mu==_Muon_mu2FromB_index) continue;
-	if(tree->Muon_softId[i_mu]){
+	if(tree->Muon_softId[i_mu] && tree->Muon_pt[i_mu] > 8.){
 	  isProbeMuonSoftID = true;
 	  _Muon_probe_index = i_mu;
 	  break;

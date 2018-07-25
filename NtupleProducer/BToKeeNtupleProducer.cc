@@ -479,7 +479,7 @@ int main(int argc, char** argv) {
       //Anti-matching with electrons to be safe
       if(mu.DeltaR(ele1_tlv)<0.1 || mu.DeltaR(ele2_tlv)<0.1) continue;
 
-      if(tree->Muon_softId[i_mu] && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
+      if(tree->Muon_softId[i_mu] && tree->Muon_pt[i_mu] > 8. && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
 	isProbeMuonSoftID = true;
 	_Muon_sel_index = i_mu;
 	break;
