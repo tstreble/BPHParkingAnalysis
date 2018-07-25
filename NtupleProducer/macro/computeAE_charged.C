@@ -31,13 +31,14 @@
 #include "TGraphErrors.h"
 #include "TPad.h"
 #include "TMultiGraph.h"
-
+#include "TStyle.h"
+#include "TChain.h"
 
 void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
 
   gROOT->Reset();
-  gROOT->Macro("~/setStyle.C");
-  gROOT->Macro("~/setStyle.C");
+  gROOT->Macro("setStyle.C");
+
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
 
@@ -52,7 +53,7 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
   int nMuonTag_nonReso = t1->GetEntries();
   int nMuonTag_Reso = t2->GetEntries();
 
-  std::cout << " #moun tag events: nnreso = " << nMuonTag_nonReso << " resonant = " << nMuonTag_Reso << std::endl;
+  std::cout << " #muon tag events: nnreso = " << nMuonTag_nonReso << " resonant = " << nMuonTag_Reso << std::endl;
 
   //if false => move to reco ee invariant mass bins
 
