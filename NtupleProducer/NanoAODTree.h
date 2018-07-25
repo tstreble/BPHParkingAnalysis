@@ -100,9 +100,11 @@ public :
    float BToKee_kaon_pt[kBToKeeMax];
    float BToKee_kaon_eta[kBToKeeMax];
    float BToKee_kaon_phi[kBToKeeMax];
+   float BToKee_ele1_charge[kBToKeeMax];
    float BToKee_ele1_pt[kBToKeeMax];
    float BToKee_ele1_eta[kBToKeeMax];
    float BToKee_ele1_phi[kBToKeeMax];
+   float BToKee_ele2_charge[kBToKeeMax];
    float BToKee_ele2_pt[kBToKeeMax];
    float BToKee_ele2_eta[kBToKeeMax];
    float BToKee_ele2_phi[kBToKeeMax];

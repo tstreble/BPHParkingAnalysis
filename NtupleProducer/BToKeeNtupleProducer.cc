@@ -9,6 +9,7 @@
 
 
 #include <iostream>
+#include <fstream>
 #include "TFile.h"
 #include "TTree.h"
 #include "TChain.h"
@@ -23,6 +24,12 @@ float BuMass_ = 5.279;
 float KaonMass_ = 0.493677;
 float ElectronMass_ = 0.5109989e-3;
 
+/* possible selctions cut for signal
+float min_CL = 0.1;
+float min_BcosAlpha = 0.9;
+float min_KDCA = 6;
+float min_BIP = 1;
+*/
 
 int main(int argc, char** argv) {
 
@@ -36,6 +43,14 @@ int main(int argc, char** argv) {
   for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "BPHParking") {
       isBPHParking = true;
+      break;
+    }
+  }
+
+  bool isResonant = false;
+  for (int i = 1; i < argc; ++i) {
+    if(std::string(argv[i]) == "Resonant") {
+      isResonant = true;
       break;
     }
   }
@@ -60,18 +75,31 @@ int main(int argc, char** argv) {
   
 
   string input;
+  string listFilesTXT;
+  bool inputTXT = false;
   for (int i = 1; i < argc; ++i) {
     if(std::string(argv[i]) == "--input") {
       if (i + 1 < argc) {
-	input = argv[i+1];
-	break;
+        input = argv[i+1];
+        break;
       } else {
 	std::cerr << "--intput option requires one argument." << std::endl;
-	return 1;
-      }      
-    }  
+        return 1;
+      }
+    }
+    else if(std::string(argv[i]) == "--inputTXT") {
+      if (i + 1 < argc) {
+        inputTXT = true;
+        listFilesTXT = argv[i+1];
+        break;
+      } else {
+	std::cerr << "--intputTXT option requires one argument." << std::endl;
+        return 1;
+      }
+    }
   }
-  if(input==""){
+
+  if(listFilesTXT == "" && input == ""){
     std::cerr << "--input argument required" << std::endl;
     return 1;
   }
@@ -105,7 +133,18 @@ int main(int argc, char** argv) {
 
 
   TChain* oldtree = new TChain("Events");
-  oldtree->Add(input.c_str());
+  if(inputTXT){
+    string reader;
+    std::ifstream inFileLong;
+    inFileLong.open(listFilesTXT.c_str(), std::ios::in);
+
+    while(!inFileLong.eof()){
+      inFileLong >> reader;
+      std::cout << " Adding " << reader << std::endl;
+      oldtree->Add(reader.c_str());
+    }
+  }
+  else   oldtree->Add(input.c_str());
   NanoAODTree* tree = new NanoAODTree(oldtree);
 
   TTree* tree_new=new TTree("BToKeeTree","BToKeeTree");
@@ -124,19 +163,22 @@ int main(int argc, char** argv) {
   int _GenPart_BToKee_index = -1;
   int _GenPart_JPsiFromB_index = -1;
   int _GenPart_KFromB_index = -1;
-  int _GenPart_e1FromJPsi_index = -1;
-  int _GenPart_e2FromJPsi_index = -1;
+  int _GenPart_e1FromB_index = -1;
+  int _GenPart_e2FromB_index = -1;
   int _BToKee_gen_index = -1;
+  float _BToKee_gen_eeMass = -1;
+  float _BToKee_gen_mass = -1;
 
   if(isMC){
 
     tree_new->Branch("GenPart_BToKee_index",&_GenPart_BToKee_index,"GenPart_BToKee_index/I");
     tree_new->Branch("GenPart_JPsiFromB_index",&_GenPart_JPsiFromB_index,"GenPart_JPsiFromB_index/I");
     tree_new->Branch("GenPart_KFromB_index",&_GenPart_KFromB_index,"GenPart_KFromB_index/I");
-    tree_new->Branch("GenPart_e1FromJPsi_index",&_GenPart_e1FromJPsi_index,"GenPart_e1FromJPsi_index/I");
-    tree_new->Branch("GenPart_e2FromJPsi_index",&_GenPart_e2FromJPsi_index,"GenPart_e2FromJPsi_index/I");
+    tree_new->Branch("GenPart_e1FromB_index",&_GenPart_e1FromB_index,"GenPart_e1FromB_index/I");
+    tree_new->Branch("GenPart_e2FromB_index",&_GenPart_e2FromB_index,"GenPart_e2FromB_index/I");
     tree_new->Branch("BToKee_gen_index",&_BToKee_gen_index,"BToKee_gen_index/I");
-
+    tree_new->Branch("BToKee_gen_eeMass",&_BToKee_gen_eeMass,"BToKee_gen_eeMass/F");
+    tree_new->Branch("BToKee_gen_mass",&_BToKee_gen_mass,"BToKee_gen_mass/F");
   }
 
   bool _HLT_Mu8p5_IP3p5 = false;
@@ -177,9 +219,11 @@ int main(int argc, char** argv) {
     _GenPart_BToKee_index = -1;
     _GenPart_JPsiFromB_index = -1;
     _GenPart_KFromB_index = -1;
-    _GenPart_e1FromJPsi_index = -1;
-    _GenPart_e2FromJPsi_index = -1;
+    _GenPart_e1FromB_index = -1;
+    _GenPart_e2FromB_index = -1;
     _BToKee_gen_index = -1;
+    _BToKee_gen_eeMass = -1;
+    _BToKee_gen_mass = -1;
 
     _HLT_Mu8p5_IP3p5 = false;
     _HLT_Mu10p5_IP3p5 = false;
@@ -258,6 +302,16 @@ int main(int argc, char** argv) {
       //Disabled for now
       //if(tree->BToKee_kaon_charge[i_BToKee]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKee with opposite charge to muon
       
+      //can be too restrictive for the moment should study effect of charge flip...
+      /*
+	if(BToKee_ele1_charge[i_BToKee] != Electron_charge[BToKee_ele1_charge[i_BToKee]] ||
+	BToKee_ele1_charge[i_BToKee] == -1 || BToKee_ele1_charge[i_BToKee] > nElectron) continue;
+	if(BToKee_ele2_charge[i_BToKee] != Electron_charge[BToKee_ele2_charge[i_BToKee]] ||
+	BToKee_ele2_charge[i_BToKee] == -1 || BToKee_ele2_charge[i_BToKee] > nElectron) continue;   
+      */
+
+      if(tree->BToKee_ele1_charge[i_BToKee] * tree->BToKee_ele2_charge[i_BToKee] > 0.) continue;
+
       float B_CL_vtx = tree->BToKee_CL_vtx[i_BToKee];
       
       if( best_B_CL_vtx < 0. || B_CL_vtx>best_B_CL_vtx ){      
@@ -275,67 +329,91 @@ int main(int argc, char** argv) {
       
       int nGenPart = tree->nGenPart;
       
-      for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
+      if(isResonant){
+	for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
 
-	if(abs(tree->GenPart_pdgId[i_Bu])==521){
+	  if(abs(tree->GenPart_pdgId[i_Bu])==521){
 
-	  for(int i_gen=0; i_gen<nGenPart; i_gen++){
-	    int pdgId = tree->GenPart_pdgId[i_gen];
-	    int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	    if(abs(pdgId)==443 && mother_index == i_Bu)
-	      _GenPart_JPsiFromB_index = i_gen;
-	    else if(abs(pdgId)==321 && mother_index == i_Bu)
-	      _GenPart_KFromB_index = i_gen;
-	    if(_GenPart_JPsiFromB_index>=0 && _GenPart_KFromB_index>=0){
-	      _GenPart_BToKee_index = i_Bu;
-	      break;
+	    for(int i_gen=0; i_gen<nGenPart; i_gen++){
+	      int pdgId = tree->GenPart_pdgId[i_gen];
+	      int mother_index = tree->GenPart_genPartIdxMother[i_gen];
+	      if(abs(pdgId)==443 && mother_index == i_Bu)
+		_GenPart_JPsiFromB_index = i_gen;
+	      else if(abs(pdgId)==321 && mother_index == i_Bu)
+		_GenPart_KFromB_index = i_gen;
+	      if(_GenPart_JPsiFromB_index>=0 && _GenPart_KFromB_index>=0){
+		_GenPart_BToKee_index = i_Bu;
+		break;
+	      }
 	    }
-	  }	  
+
+	  }
+	  if(_GenPart_BToKee_index>=0) break;
+	}
+
+	for(int i_gen=0; i_gen<nGenPart; i_gen++){
+	  int pdgId = tree->GenPart_pdgId[i_gen];
+	  int mother_index = tree->GenPart_genPartIdxMother[i_gen];
+	  if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index && _GenPart_e1FromB_index<0)
+	    _GenPart_e1FromB_index = i_gen;
+	  else if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index)
+	    _GenPart_e2FromB_index = i_gen;
+	  if(_GenPart_e1FromB_index>=0 && _GenPart_e2FromB_index>=0) break;
 
 	}
-	
-	if(_GenPart_BToKee_index>=0) break;
+      }//resonant
+      else{
+        for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
 
+          if(abs(tree->GenPart_pdgId[i_Bu])==521){
+
+            for(int i_gen=0; i_gen<nGenPart; i_gen++){
+              int pdgId = tree->GenPart_pdgId[i_gen];
+              int mother_index = tree->GenPart_genPartIdxMother[i_gen];
+              if(abs(pdgId)==11 && mother_index == i_Bu && _GenPart_e1FromB_index<0)
+                _GenPart_e1FromB_index = i_gen;
+              else if(abs(pdgId)==11 && mother_index == i_Bu)
+                _GenPart_e2FromB_index = i_gen;
+              else if(abs(pdgId)==321 && mother_index == i_Bu)
+                _GenPart_KFromB_index = i_gen;
+              if(_GenPart_e1FromB_index>=0 && _GenPart_e2FromB_index>=0 && _GenPart_KFromB_index>=0){
+                _GenPart_BToKee_index = i_Bu;
+                break;
+              }
+	    }
+          }//if B
+          if(_GenPart_BToKee_index>=0) break;
+        }//loop over B
       }
 
 
-      
-      for(int i_gen=0; i_gen<nGenPart; i_gen++){
-
-	int pdgId = tree->GenPart_pdgId[i_gen];
-	int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index && _GenPart_e1FromJPsi_index<0)
-	  _GenPart_e1FromJPsi_index = i_gen;
-	else if(abs(pdgId)==11 && mother_index == _GenPart_JPsiFromB_index)
-	  _GenPart_e2FromJPsi_index = i_gen;
-	if(_GenPart_e1FromJPsi_index>=0 && _GenPart_e2FromJPsi_index>=0) break;
-
-      }
-
-      //e1FromJPsi stored a leading daughter
-      if(tree->GenPart_pt[_GenPart_e2FromJPsi_index]>tree->GenPart_pt[_GenPart_e1FromJPsi_index]){
-	int i_temp = _GenPart_e1FromJPsi_index;
-	_GenPart_e1FromJPsi_index = _GenPart_e2FromJPsi_index;
-	_GenPart_e2FromJPsi_index = i_temp;
+      //e1FromB stored a leading daughter
+      if(tree->GenPart_pt[_GenPart_e2FromB_index]>tree->GenPart_pt[_GenPart_e1FromB_index]){
+	int i_temp = _GenPart_e1FromB_index;
+	_GenPart_e1FromB_index = _GenPart_e2FromB_index;
+	_GenPart_e2FromB_index = i_temp;
       }
 
 
       TLorentzVector gen_KFromB_tlv;
-      TLorentzVector gen_e1FromJPsi_tlv;
-      TLorentzVector gen_e2FromJPsi_tlv;
+      TLorentzVector gen_e1FromB_tlv;
+      TLorentzVector gen_e2FromB_tlv;
       
       gen_KFromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_KFromB_index],
 				   tree->GenPart_eta[_GenPart_KFromB_index],
 				   tree->GenPart_phi[_GenPart_KFromB_index],
 				   KaonMass_);
-      gen_e1FromJPsi_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e1FromJPsi_index],
-				   tree->GenPart_eta[_GenPart_e1FromJPsi_index],
-				   tree->GenPart_phi[_GenPart_e1FromJPsi_index],
+      gen_e1FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e1FromB_index],
+				   tree->GenPart_eta[_GenPart_e1FromB_index],
+				   tree->GenPart_phi[_GenPart_e1FromB_index],
 				   ElectronMass_);
-      gen_e2FromJPsi_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e2FromJPsi_index],
-				    tree->GenPart_eta[_GenPart_e2FromJPsi_index],
-				    tree->GenPart_phi[_GenPart_e2FromJPsi_index],
+      gen_e2FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_e2FromB_index],
+				    tree->GenPart_eta[_GenPart_e2FromB_index],
+				    tree->GenPart_phi[_GenPart_e2FromB_index],
 				    ElectronMass_);
+
+      _BToKee_gen_eeMass = (gen_e1FromB_tlv+gen_e2FromB_tlv).Mag();
+      _BToKee_gen_mass = (gen_e1FromB_tlv+gen_e2FromB_tlv+gen_KFromB_tlv).Mag();
 
       float best_dR = -1.;
 
@@ -359,22 +437,21 @@ int main(int argc, char** argv) {
 			      ElectronMass_);
 
 	float dR_KFromB = kaon_tlv.DeltaR(gen_KFromB_tlv);
-	float dR_e1FromJPsi = min(ele1_tlv.DeltaR(gen_e1FromJPsi_tlv),ele2_tlv.DeltaR(gen_e1FromJPsi_tlv));
-	float dR_e2FromJPsi = min(ele1_tlv.DeltaR(gen_e2FromJPsi_tlv),ele2_tlv.DeltaR(gen_e2FromJPsi_tlv));
+	float dR_e1FromB = min(ele1_tlv.DeltaR(gen_e1FromB_tlv),ele2_tlv.DeltaR(gen_e1FromB_tlv));
+	float dR_e2FromB = min(ele1_tlv.DeltaR(gen_e2FromB_tlv),ele2_tlv.DeltaR(gen_e2FromB_tlv));
 	//Should check that same objects not selected twice
 
-	float dR_tot = dR_KFromB + dR_e1FromJPsi + dR_e2FromJPsi; //In case several BToKee matches, take the closest one in dR_tot
+	float dR_tot = dR_KFromB + dR_e1FromB + dR_e2FromB; //In case several BToKee matches, take the closest one in dR_tot
 
-	if( dR_KFromB<0.1 && dR_e1FromJPsi<0.1 && dR_e2FromJPsi<0.1
+	if( dR_KFromB<0.1 && dR_e1FromB<0.1 && dR_e2FromB<0.1
 	    && (best_dR<0. || dR_tot<best_dR) ){
 	  best_dR = dR_tot;
 	  _BToKee_gen_index = i_BToKee;	  
 	}
 
-      }
+      }//matched to reco
 
-
-    }
+    }//gen info
 
 
     //Require probe muon passing soft ID for Acc.xEff.
@@ -402,7 +479,7 @@ int main(int argc, char** argv) {
       //Anti-matching with electrons to be safe
       if(mu.DeltaR(ele1_tlv)<0.1 || mu.DeltaR(ele2_tlv)<0.1) continue;
 
-      if(tree->Muon_softId[i_mu] && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
+      if(tree->Muon_softId[i_mu] && tree->Muon_pt[i_mu] > 8. && (!isBPHParking || _Muon_isHLT_BPHParking[i_mu])){
 	isProbeMuonSoftID = true;
 	_Muon_sel_index = i_mu;
 	break;
