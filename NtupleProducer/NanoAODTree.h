@@ -20,6 +20,7 @@
 #include <TTree.h>
 
 const int kMuonMax = 100;
+const int kElectronMax = 100;
 const int kBToKpipiMax = 1000000;
 const int kBToKmumuMax = 10000;
 const int kBToKeeMax = 10000;
@@ -49,6 +50,15 @@ public :
    float Muon_pfRelIso04_all[kMuonMax];
    bool Muon_softId[kMuonMax];
    bool Muon_mediumId[kMuonMax];
+
+   uint nElectron;
+   int Electron_charge[kElectronMax];
+   float Electron_pt[kElectronMax];
+   float Electron_eta[kElectronMax];
+   float Electron_phi[kElectronMax];
+   float Electron_mass[kElectronMax];
+   float Electron_dxy[kElectronMax];
+   float Electron_dz[kElectronMax];
 
    uint nBToKpipi;
    float BToKpipi_CL_vtx[kBToKpipiMax];
@@ -203,6 +213,15 @@ void NanoAODTree::Init(TChain* tree)
   _tree->SetBranchAddress("Muon_pfRelIso04_all",&Muon_pfRelIso04_all);
   _tree->SetBranchAddress("Muon_softId",&Muon_softId);
   _tree->SetBranchAddress("Muon_mediumId",&Muon_mediumId);
+
+  _tree->SetBranchAddress("nElectron",&nElectron);  
+  _tree->SetBranchAddress("Electron_charge",&Electron_charge);  
+  _tree->SetBranchAddress("Electron_pt",&Electron_pt);  
+  _tree->SetBranchAddress("Electron_eta",&Electron_eta);
+  _tree->SetBranchAddress("Electron_phi",&Electron_phi);
+  _tree->SetBranchAddress("Electron_mass",&Electron_mass);
+  _tree->SetBranchAddress("Electron_dxy",&Electron_dxy);
+  _tree->SetBranchAddress("Electron_dz",&Electron_dz);
 
   int BToKpipi_info = _tree->SetBranchAddress("nBToKpipi",&nBToKpipi);
   if(BToKpipi_info>=0){

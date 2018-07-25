@@ -169,6 +169,10 @@ int main(int argc, char** argv) {
   float _BToKee_gen_eeMass = -1;
   float _BToKee_gen_mass = -1;
 
+  int _Electron_e1FromB_index = -1;
+  int _Electron_e2FromB_index = -1;
+  int _PFCand_genKFromB_index = -1;
+
   if(isMC){
 
     tree_new->Branch("GenPart_BToKee_index",&_GenPart_BToKee_index,"GenPart_BToKee_index/I");
@@ -177,6 +181,9 @@ int main(int argc, char** argv) {
     tree_new->Branch("GenPart_e1FromB_index",&_GenPart_e1FromB_index,"GenPart_e1FromB_index/I");
     tree_new->Branch("GenPart_e2FromB_index",&_GenPart_e2FromB_index,"GenPart_e2FromB_index/I");
     tree_new->Branch("BToKee_gen_index",&_BToKee_gen_index,"BToKee_gen_index/I");
+    tree_new->Branch("Electron_e1FromB_index",&_Electron_e1FromB_index,"Electron_e1FromB_index/I");
+    tree_new->Branch("Electron_e2FromB_index",&_Electron_e2FromB_index,"Electron_e2FromB_index/I");
+    tree_new->Branch("PFCand_genKFromB_index",&_PFCand_genKFromB_index,"PFCand_genKFromB_index/I");
     tree_new->Branch("BToKee_gen_eeMass",&_BToKee_gen_eeMass,"BToKee_gen_eeMass/F");
     tree_new->Branch("BToKee_gen_mass",&_BToKee_gen_mass,"BToKee_gen_mass/F");
   }
@@ -222,6 +229,9 @@ int main(int argc, char** argv) {
     _GenPart_e1FromB_index = -1;
     _GenPart_e2FromB_index = -1;
     _BToKee_gen_index = -1;
+    _Electron_e1FromB_index = -1;
+    _Electron_e2FromB_index = -1;
+    _PFCand_genKFromB_index = -1;
     _BToKee_gen_eeMass = -1;
     _BToKee_gen_mass = -1;
 
@@ -450,6 +460,55 @@ int main(int argc, char** argv) {
 	}
 
       }//matched to reco
+
+
+      float best_dR_e1FromB = -1.;
+      float best_dR_e2FromB = -1.;
+      float best_dR_KFromB = -1.;
+
+      int nElectron = tree->nElectron;
+      for(int i_ele=0; i_ele<nElectron; i_ele++){
+
+	TLorentzVector ele_tlv;
+	ele_tlv.SetPtEtaPhiM(tree->Electron_pt[i_ele],
+			    tree->Electron_eta[i_ele],
+			    tree->Electron_phi[i_ele],
+			    ElectronMass_);
+
+	float dR_e1FromB = ele_tlv.DeltaR(gen_e1FromB_tlv);
+	float dR_e2FromB = ele_tlv.DeltaR(gen_e2FromB_tlv);
+
+	if(dR_e1FromB<0.1 && (best_dR_e1FromB<0. || dR_e1FromB<best_dR_e1FromB)){
+	  _Electron_e1FromB_index = i_ele;
+	  best_dR_e1FromB = dR_e1FromB;
+	}
+	if(dR_e2FromB<0.1 && (best_dR_e2FromB<0. || dR_e2FromB<best_dR_e2FromB)){	  
+	  _Electron_e2FromB_index = i_ele;
+	  best_dR_e2FromB = dR_e2FromB;
+	}
+
+      }
+
+
+      int nPFCand = tree->nPFCand;
+      for(int i_pf=0;i_pf<nPFCand;i_pf++){
+
+	if(abs(tree->PFCand_pdgId[i_pf])!=211) continue;
+
+	TLorentzVector PFCand_tlv;
+	PFCand_tlv.SetPtEtaPhiM(tree->PFCand_pt[i_pf],tree->PFCand_eta[i_pf],tree->PFCand_phi[i_pf],tree->PFCand_mass[i_pf]);
+
+	float dR_KFromB = PFCand_tlv.DeltaR(gen_KFromB_tlv);
+
+	if(dR_KFromB<0.1 && (best_dR_KFromB<0. || dR_KFromB<best_dR_KFromB)){
+	  _PFCand_genKFromB_index = i_pf;
+	  best_dR_KFromB = dR_KFromB;
+	}
+
+      }
+
+
+
 
     }//gen info
 
