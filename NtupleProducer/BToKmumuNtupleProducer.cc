@@ -183,6 +183,7 @@ int main(int argc, char** argv) {
 
   int _Muon_mu1FromB_index = -1;
   int _Muon_mu2FromB_index = -1;
+  int _PFCand_genKFromB_index = -1;
 
   if(isMC){
 
@@ -196,6 +197,7 @@ int main(int argc, char** argv) {
     tree_new->Branch("BToKmumu_gen_mass",&_BToKmumu_gen_mass,"BToKmumu_gen_mass/F");
     tree_new->Branch("Muon_mu1FromB_index",&_Muon_mu1FromB_index,"Muon_mu1FromB_index/I");
     tree_new->Branch("Muon_mu2FromB_index",&_Muon_mu2FromB_index,"Muon_mu2FromB_index/I");
+    tree_new->Branch("PFCand_genKFromB_index",&_PFCand_genKFromB_index,"PFCand_genKFromB_index/I");
 
   }
 
@@ -245,6 +247,7 @@ int main(int argc, char** argv) {
     _BToKmumu_gen_mass = -1;
     _Muon_mu1FromB_index = -1;
     _Muon_mu2FromB_index = -1;
+    _PFCand_genKFromB_index = -1;
 
     _HLT_Mu8p5_IP3p5 = false;
     _HLT_Mu10p5_IP3p5 = false;
@@ -502,6 +505,9 @@ int main(int argc, char** argv) {
       }
 
 
+      float best_dR_mu1FromB = -1.;
+      float best_dR_mu2FromB = -1.;
+      float best_dR_KFromB = -1.;
 
       for(int i_mu=0; i_mu<nMuon; i_mu++){
 
@@ -511,13 +517,37 @@ int main(int argc, char** argv) {
 			    tree->Muon_phi[i_mu],
 			    MuonMass_);
 
-	if(mu_tlv.DeltaR(gen_mu1FromB_tlv)<0.1)
+	float dR_mu1FromB = mu_tlv.DeltaR(gen_mu1FromB_tlv);
+	float dR_mu2FromB = mu_tlv.DeltaR(gen_mu2FromB_tlv);
+
+	if(dR_mu1FromB<0.1 && (best_dR_mu1FromB<0. || dR_mu1FromB<best_dR_mu1FromB)){
 	  _Muon_mu1FromB_index = i_mu;
-	if(mu_tlv.DeltaR(gen_mu2FromB_tlv)<0.1)
+	  best_dR_mu1FromB = dR_mu1FromB;
+	}
+	if(dR_mu2FromB<0.1 && (best_dR_mu2FromB<0. || dR_mu2FromB<best_dR_mu2FromB)){	  
 	  _Muon_mu2FromB_index = i_mu;
+	  best_dR_mu2FromB = dR_mu2FromB;
+	}
 
       }
 
+
+      int nPFCand = tree->nPFCand;
+      for(int i_pf=0;i_pf<nPFCand;i_pf++){
+
+	if(abs(tree->PFCand_pdgId[i_pf])!=211) continue;
+
+	TLorentzVector PFCand_tlv;
+	PFCand_tlv.SetPtEtaPhiM(tree->PFCand_pt[i_pf],tree->PFCand_eta[i_pf],tree->PFCand_phi[i_pf],tree->PFCand_mass[i_pf]);
+
+	float dR_KFromB = PFCand_tlv.DeltaR(gen_KFromB_tlv);
+
+	if(dR_KFromB<0.1 && (best_dR_KFromB<0. || dR_KFromB<best_dR_KFromB)){
+	  _PFCand_genKFromB_index = i_pf;
+	  best_dR_KFromB = dR_KFromB;
+	}
+
+      }
 
       //Gen muon pt filter on probe
 
