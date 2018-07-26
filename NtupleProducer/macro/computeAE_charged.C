@@ -6,7 +6,10 @@
 
 //should be ok for electron final state 
 //example to run
-//root -l computeAE_charged.C'("/vols/cms/amartell/BParking/ntuPROD/ntu_BToKee_v18_03_22_and_21.root" , "/vols/cms/amartell/BParking/ntuPROD/ntu_BToKJPsiee_v18_06_4_and_5.root")' 
+//electron final state
+//root -l computeAE_charged.C'("/vols/cms/amartell/BParking/ntuPROD/ntu_BToKee.root" , "/vols/cms/amartell/BParking/ntuPROD/ntu_BToKJPsiee.root", 1)' 
+//muon final state
+//root -l computeAE_charged.C'("/vols/cms/amartell/BParking/ntuPROD/ntu_BToKmumu.root" , "/vols/cms/amartell/BParking/ntuPROD/ntu_BToKJPsimumu.root", 0)' 
 
 
 #include <iostream>
@@ -34,13 +37,16 @@
 #include "TStyle.h"
 #include "TChain.h"
 
-void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
+void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, int isEleFinalState){
 
   gROOT->Reset();
   gROOT->Macro("setStyle.C");
 
   gStyle->SetOptStat(0);
   gStyle->SetOptFit(0);
+
+
+  std::cout << " isEleFinalState = " << isEleFinalState << std::endl;
 
   TChain* t1 = new TChain("Events");
   TChain* t2 = new TChain("Events");
@@ -67,24 +73,42 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
   std::string cut_vtxCLEff = "BToKee_CL_vtx[BToKee_gen_index] > 0.1";  
   std::string cut_DCAEff  = "abs(BToKee_kaon_DCASig[BToKee_gen_index]) > 6";
 
-  std::vector<std::string> eeMassCut;
-  std::vector<std::string> eeGenMassCut;
+  if(!isEleFinalState){
+    cut_muonTag = "Muon_probe_index != -1";
+    cut_genAcc = "GenPart_mu2FromB_index != -1 && GenPart_pt[GenPart_mu2FromB_index] > 1. && abs(GenPart_eta[GenPart_mu2FromB_index]) < 2.4 && GenPart_mu1FromB_index != -1 && GenPart_pt[GenPart_mu1FromB_index] > 1. && abs(GenPart_eta[GenPart_mu1FromB_index]) < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && abs(GenPart_eta[GenPart_KFromB_index]) < 2.4";
+    cut_genEff = "BToKmumu_gen_index != -1 && BToKmumu_gen_index == BToKmumu_sel_index";
+    cut_chargeEff = "BToKmumu_mu1_charge[BToKmumu_gen_index]*BToKmumu_mu2_charge[BToKmumu_gen_index] < 0.";
+    cut_alphaEff = "BToKmumu_cosAlpha[BToKmumu_gen_index] > 0.99";
+    cut_vtxCLEff = "BToKmumu_CL_vtx[BToKmumu_gen_index] > 0.1";
+    cut_DCAEff  = "abs(BToKmumu_kaon_DCASig[BToKmumu_gen_index]) > 6";
+  }
 
-  std::vector<float> eeMassBoundary;
-  eeMassBoundary.push_back(0.);
-  eeMassBoundary.push_back(1.);
-  eeMassBoundary.push_back(2.5);
-  eeMassBoundary.push_back(2.9);
-  eeMassBoundary.push_back(3.3);
-  eeMassBoundary.push_back(3.58);
+  std::vector<std::string> llMassCut;
+  std::vector<std::string> llGenMassCut;
+
+  std::vector<float> llMassBoundary;
+  llMassBoundary.push_back(0.);
+  llMassBoundary.push_back(1.);
+  llMassBoundary.push_back(2.5);
+  llMassBoundary.push_back(2.9);
+  llMassBoundary.push_back(3.3);
+  llMassBoundary.push_back(3.58);
 
   for(int ij=0; ij<5; ++ij){
     std::string cut = Form("BToKee_eeKFit_ee_mass[BToKee_gen_index] > %.2f && BToKee_eeKFit_ee_mass[BToKee_gen_index] < %.2f",
-                           eeMassBoundary.at(ij), eeMassBoundary.at(ij+1));
-    eeMassCut.push_back(cut);
+                           llMassBoundary.at(ij), llMassBoundary.at(ij+1));
     std::string gencut = Form("BToKee_gen_eeMass > %.2f && BToKee_gen_eeMass < %.2f",
-                              eeMassBoundary.at(ij), eeMassBoundary.at(ij+1));
-    eeGenMassCut.push_back(gencut);
+                              llMassBoundary.at(ij), llMassBoundary.at(ij+1));
+    if(!isEleFinalState){
+      cut = Form("BToKmumu_mumuKFit_mumu_mass[BToKmumu_gen_index] > %.2f && BToKmumu_mumuKFit_mumu_mass[BToKmumu_gen_index] < %.2f",
+		 llMassBoundary.at(ij), llMassBoundary.at(ij+1));
+      gencut = Form("BToKmumu_gen_mumuMass > %.2f && BToKmumu_gen_mumuMass < %.2f",
+		    llMassBoundary.at(ij), llMassBoundary.at(ij+1));
+
+    }
+
+    llMassCut.push_back(cut);
+    llGenMassCut.push_back(gencut);
   }
 
   //non resonant first - JPsi last
@@ -98,58 +122,59 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile){
   float nEv_DCAEff[6] = {0.};
 
   for(int ij=0; ij<5; ++ij){
-    nEv_muonTag[ij] = t1->Draw("Muon_sel_index", (eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_genAcc[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_genEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_recoEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_chargeEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_alphaEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_vtxCLEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
-    nEv_DCAEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeMassCut.at(ij)+" && "+eeGenMassCut.at(ij)).c_str(), "goff");
+    nEv_muonTag[ij] = t1->Draw("Muon_sel_index", (llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_genAcc[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_genEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_recoEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_chargeEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_alphaEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_vtxCLEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
+    nEv_DCAEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
   }
-  nEv_muonTag[5] = t2->Draw("Muon_sel_index", (eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_genAcc[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_genEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_recoEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_chargeEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_alphaEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_vtxCLEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
-  nEv_DCAEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+eeMassCut.at(3)+" && "+eeGenMassCut.at(3)).c_str(), "goff");
+  nEv_muonTag[5] = t2->Draw("Muon_sel_index", (llGenMassCut.at(3)).c_str(), "goff");
+  nEv_genAcc[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+llGenMassCut.at(3)).c_str(), "goff");
+  nEv_genEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llGenMassCut.at(3)).c_str(), "goff");
+  nEv_recoEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
+  nEv_chargeEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
+  nEv_alphaEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
+  nEv_vtxCLEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
+  nEv_DCAEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
   
 
 
   //upgrate to 2D plot for future or something better than printout
   for(int ij=0; ij<5; ++ij){
-    std::cout <<        " \n \t  mass bin non-Resonant = " << eeGenMassCut.at(ij) << "\t  \t  Resonant (J/Psi) \t  \t" << std::endl;
-    std::cout << " muonTag = \t " << nEv_muonTag[ij] << "\t  \t " << nEv_muonTag[5]  << " \t \t " << std::endl;
+    // std::cout << " \n mass bin \t nonResonant = " << llGenMassCut.at(ij) << "\t        \t Resonant (J/Psi) \t   \t \t" << std::endl;
+    std::cout << " \n   \t nonResonant ll mass-bin [" << llMassBoundary.at(ij) << "-"<< llMassBoundary.at(ij+1) << "] \t       \t Resonant (J/Psi) \t   \t \t" << std::endl;
+    std::cout << " muonTag = \t " << nEv_muonTag[ij] << " \t              \t \t        \t " << nEv_muonTag[5]  << " \t " << std::endl;
 
-    std::cout << " genAcc = \t " << nEv_genAcc[ij] << " \t /muonTag = " << nEv_genAcc[ij]/nEv_muonTag[ij] 
-	      << " \t "          << nEv_genAcc[5] << " \t  /muonTag = " << nEv_genAcc[5]/nEv_muonTag[5] 
-	      << " \t double ratio = " << (nEv_genAcc[ij]/nEv_muonTag[ij])/(nEv_genAcc[5]/nEv_muonTag[5]) << "\n";
+    std::cout << " genAcc = \t " << nEv_genAcc[ij] << " \t /muonTag = " << nEv_genAcc[ij]/nEv_muonTag[ij]
+	      << "               \t " << nEv_genAcc[5] << " \t  /muonTag = " << nEv_genAcc[5]/nEv_muonTag[5] 
+	      << " \t double ratio = \t" << (nEv_genAcc[ij]/nEv_muonTag[ij])/(nEv_genAcc[5]/nEv_muonTag[5]) << "\n";
 
     std::cout << " x genEff = \t " << nEv_genEff[ij] << " \t  /muonTag = " << nEv_genEff[ij]/nEv_muonTag[ij]
-	      << " \t "            << nEv_genEff[5] << " \t  /muonTag = " << nEv_genEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = " << (nEv_genEff[ij]/nEv_muonTag[ij])/(nEv_genEff[5]/nEv_muonTag[5]) << "\n";
+	      << "                 \t " << nEv_genEff[5] << " \t  /muonTag = " << nEv_genEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = \t" << (nEv_genEff[ij]/nEv_muonTag[ij])/(nEv_genEff[5]/nEv_muonTag[5]) << "\n";
 
     std::cout << " x recoEff = \t " << nEv_recoEff[ij] << " \t  /muonTag = " << nEv_recoEff[ij]/nEv_muonTag[ij]
-	      << " \t "             << nEv_recoEff[5] << " \t  /muonTag = " << nEv_recoEff[5]/nEv_muonTag[5]
-	      << " \t  double ratio = " << (nEv_recoEff[ij]/nEv_muonTag[ij])/(nEv_recoEff[5]/nEv_muonTag[5]) << "\n";
+	      << "                 \t " << nEv_recoEff[5] << " \t  /muonTag = " << nEv_recoEff[5]/nEv_muonTag[5]
+	      << " \t  double ratio = \t" << (nEv_recoEff[ij]/nEv_muonTag[ij])/(nEv_recoEff[5]/nEv_muonTag[5]) << "\n";
 
     std::cout << " x chargeEff = \t " << nEv_chargeEff[ij] << " \t  /muonTag = " << nEv_chargeEff[ij]/nEv_muonTag[ij]
-	      << " \t "               << nEv_chargeEff[5] << " \t  /muonTag = " << nEv_chargeEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = " << (nEv_chargeEff[ij]/nEv_muonTag[ij])/(nEv_chargeEff[5]/nEv_muonTag[5]) << "\n";
+	      << "                 \t " << nEv_chargeEff[5] << " \t  /muonTag = " << nEv_chargeEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = \t" << (nEv_chargeEff[ij]/nEv_muonTag[ij])/(nEv_chargeEff[5]/nEv_muonTag[5]) << "\n";
 
     std::cout << " x alphaEff = \t " << nEv_alphaEff[ij] << " \t  /muonTag = " << nEv_alphaEff[ij]/nEv_muonTag[ij]
-	      << " \t "              << nEv_alphaEff[5] << " \t  /muonTag = " << nEv_alphaEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = " << (nEv_alphaEff[ij]/nEv_muonTag[ij])/(nEv_alphaEff[5]/nEv_muonTag[5]) << "\n";
+	      << "               \t " << nEv_alphaEff[5] << " \t  /muonTag = " << nEv_alphaEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = \t" << (nEv_alphaEff[ij]/nEv_muonTag[ij])/(nEv_alphaEff[5]/nEv_muonTag[5]) << "\n";
 
     std::cout << " x vtxCLEff = \t " << nEv_vtxCLEff[ij] << " \t  /muonTag = " << nEv_vtxCLEff[ij]/nEv_muonTag[ij]
-	      << " \t "              << nEv_vtxCLEff[5] << " \t  /muonTag = " << nEv_vtxCLEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = " << (nEv_vtxCLEff[ij]/nEv_muonTag[ij])/(nEv_vtxCLEff[5]/nEv_muonTag[5]) << "\n";
+	      << "               \t " << nEv_vtxCLEff[5] << " \t  /muonTag = " << nEv_vtxCLEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = \t" << (nEv_vtxCLEff[ij]/nEv_muonTag[ij])/(nEv_vtxCLEff[5]/nEv_muonTag[5]) << "\n";
 
     std::cout << " x DCAEff = \t " << nEv_DCAEff[ij] << " \t  /muonTag = " << nEv_DCAEff[ij]/nEv_muonTag[ij]
-	      << " \t "            << nEv_DCAEff[5]  << " \t  /muonTag = " << nEv_DCAEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = " << (nEv_DCAEff[ij]/nEv_muonTag[ij])/(nEv_DCAEff[5]/nEv_muonTag[5]) << std::endl;
+	      << "                 \t " << nEv_DCAEff[5]  << " \t  /muonTag = " << nEv_DCAEff[5]/nEv_muonTag[5]
+	      << " \t double ratio = \t" << (nEv_DCAEff[ij]/nEv_muonTag[ij])/(nEv_DCAEff[5]/nEv_muonTag[5]) << std::endl;
   }
 
 
