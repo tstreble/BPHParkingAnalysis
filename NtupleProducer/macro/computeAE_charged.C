@@ -74,6 +74,7 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, in
   std::string cut_DCAEff  = "abs(BToKee_kaon_DCASig[BToKee_gen_index]) > 6";
 
   if(!isEleFinalState){
+    cut_muonTag = "Muon_probe_index != -1";
     cut_genAcc = "GenPart_mu2FromB_index != -1 && GenPart_pt[GenPart_mu2FromB_index] > 1. && abs(GenPart_eta[GenPart_mu2FromB_index]) < 2.4 && GenPart_mu1FromB_index != -1 && GenPart_pt[GenPart_mu1FromB_index] > 1. && abs(GenPart_eta[GenPart_mu1FromB_index]) < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && abs(GenPart_eta[GenPart_KFromB_index]) < 2.4";
     cut_genEff = "BToKmumu_gen_index != -1 && BToKmumu_gen_index == BToKmumu_sel_index";
     cut_chargeEff = "BToKmumu_mu1_charge[BToKmumu_gen_index]*BToKmumu_mu2_charge[BToKmumu_gen_index] < 0.";
