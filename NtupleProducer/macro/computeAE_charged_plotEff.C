@@ -36,6 +36,7 @@
 #include "TMultiGraph.h"
 #include "TStyle.h"
 #include "TChain.h"
+#include "TLegend.h"
 
 void computeAE_charged_plotEff(std::string nonResonantFile, std::string ResonantFile, int isEleFinalState){
 
@@ -72,6 +73,7 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
   std::string cut_alphaEff = "BToKee_cosAlpha[BToKee_gen_index] > 0.99";
   std::string cut_vtxCLEff = "BToKee_CL_vtx[BToKee_gen_index] > 0.1";  
   std::string cut_DCAEff  = "abs(BToKee_kaon_DCASig[BToKee_gen_index]) > 6";
+  std::string cut_LxyEff  = "BToKee_Lxy[BToKee_gen_index] > 6";
 
   if(!isEleFinalState){
     cut_muonTag = "Muon_probe_index != -1";
@@ -81,6 +83,7 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
     cut_alphaEff = "BToKmumu_cosAlpha[BToKmumu_gen_index] > 0.99";
     cut_vtxCLEff = "BToKmumu_CL_vtx[BToKmumu_gen_index] > 0.1";
     cut_DCAEff  = "abs(BToKmumu_kaon_DCASig[BToKmumu_gen_index]) > 6";
+    cut_LxyEff  = "BToKmumu_Lxy[BToKmumu_gen_index] > 6";
   }
 
   std::vector<std::string> llMassCut;
@@ -120,6 +123,7 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
   float nEv_alphaEff[6] = {0.};
   float nEv_vtxCLEff[6] = {0.};
   float nEv_DCAEff[6] = {0.};
+  float nEv_LxyEff[6] = {0.};
 
 
   std::vector<std::string> cutFlow;
@@ -130,7 +134,8 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
   cutFlow.push_back("chargeEff");
   cutFlow.push_back("alphaEff");
   cutFlow.push_back("vtxCLEff");
-  cutFlow.push_back("DCAEff");
+  //cutFlow.push_back("DCAEff");
+  cutFlow.push_back("LxyEff");
 
   TH2F* efficiency2D[8][6];
   for(int ij=0; ij<5; ++ij){
@@ -166,8 +171,10 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
 				  (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
       nEv_vtxCLEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[6][ij]->GetName()), 
 				  (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
-      nEv_DCAEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[7][ij]->GetName()), 
-				(cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
+      // nEv_DCAEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[7][ij]->GetName()), 
+      // 				(cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
+      nEv_LxyEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[7][ij]->GetName()), 
+				(cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_LxyEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
     }
     else{
       nEv_muonTag[ij] = t1->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[0][ij]->GetName()), (llGenMassCut.at(ij)).c_str());
@@ -182,8 +189,10 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
 				  (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
       nEv_vtxCLEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[6][ij]->GetName()), 
 				  (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
-      nEv_DCAEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[7][ij]->GetName()), 
-				(cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
+      // nEv_DCAEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[7][ij]->GetName()), 
+      // 				(cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
+      nEv_LxyEff[ij] = t1->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[7][ij]->GetName()), 
+				(cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_LxyEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str());
     }
   }
 
@@ -220,8 +229,10 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
 				 (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
       nEv_vtxCLEff[5] = t2->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[6][5]->GetName()), 
 				 (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
-      nEv_DCAEff[5] = t2->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[7][5]->GetName()), 
-			       (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
+      // nEv_DCAEff[5] = t2->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[7][5]->GetName()), 
+      // 			       (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
+      nEv_LxyEff[5] = t2->Draw(Form("GenPart_pt[GenPart_e2FromB_index]:GenPart_eta[GenPart_e2FromB_index] >>%s", efficiency2D[7][5]->GetName()), 
+			       (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_LxyEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
     }
     else{
       nEv_muonTag[5] = t2->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[0][5]->GetName()), (llGenMassCut.at(3)).c_str());
@@ -237,8 +248,10 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
 				 (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
       nEv_vtxCLEff[5] = t2->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[6][5]->GetName()), 
 				 (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
-      nEv_DCAEff[5] = t2->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[7][5]->GetName()), 
-			       (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
+      // nEv_DCAEff[5] = t2->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[7][5]->GetName()), 
+      // 			       (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
+      nEv_LxyEff[5] = t2->Draw(Form("GenPart_pt[GenPart_mu2FromB_index]:GenPart_eta[GenPart_mu2FromB_index] >>%s", efficiency2D[7][5]->GetName()), 
+			       (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_LxyEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str());
     }
 
 
@@ -295,7 +308,7 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
       efficiency[6][ij] = (TH1F*)(efficiency2D[6][ij]->ProjectionY())->Clone(efficiency[6][ij]->GetName());
       efficiency[7][ij] = (TH1F*)(efficiency2D[7][ij]->ProjectionY())->Clone(efficiency[7][ij]->GetName());
 
-      efficiencyRatio[0][ij]->Divide(efficiency2D[0][ij]);
+      //      efficiencyRatio[0][ij]->Divide(efficiency2D[0][ij]);
       efficiencyRatio[1][ij]->Divide(efficiency2D[0][ij]);
       efficiencyRatio[2][ij]->Divide(efficiency2D[0][ij]);
       efficiencyRatio[3][ij]->Divide(efficiency2D[0][ij]);
@@ -393,10 +406,16 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
         }
         efficiencyRatio[kl][ij]->GetYaxis()->SetTitleOffset(1.05);
         efficiencyRatio[kl][ij]->Draw("colz");
-        if(isEleFinalState)
-          c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_NonResonant_eeK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
-        else
-          c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_NonResonant_mumuK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+        if(isEleFinalState){
+	  if(kl == 0)
+	    c2[kl][ij]->Print(Form("plots/EffxAcc/MuonTag_NonResonant_eeK_massBin_%.2f-%.2f.png", llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	  else c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_NonResonant_eeK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	}
+        else{
+          if(kl == 0) 
+	    c2[kl][ij]->Print(Form("plots/EffxAcc/MuonTag_NonResonant_mumuK_massBin_%.2f-%.2f.png", llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	  else c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_NonResonant_mumuK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	}
       }
       else{
         if(isEleFinalState){
@@ -409,14 +428,19 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
         }
         efficiencyRatio[kl][5]->GetYaxis()->SetTitleOffset(1.05);
         efficiencyRatio[kl][5]->Draw("colz");
-        if(isEleFinalState)
-	  c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_JPsi_eeK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
-        else
-	  c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_JPsi_mumuK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+        if(isEleFinalState){
+	  if(kl == 0)
+	    c2[kl][ij]->Print(Form("plots/EffxAcc/MuonTag_JPsi_eeK_massBin_%.2f-%.2f.png", llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	  else c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_JPsi_eeK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	}
+        else{
+	  if(kl == 0)
+	    c2[kl][ij]->Print(Form("plots/EffxAcc/MuonTag_JPsi_mumuK_massBin_%.2f-%.2f.png", llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	  else c2[kl][ij]->Print(Form(("plots/EffxAcc/Eff_"+cutFlow.at(kl)+"_over_"+cutFlow.at(0)+"_JPsi_mumuK_massBin_%.2f-%.2f.png").c_str(), llMassBoundary.at(ij), llMassBoundary.at(ij+1)), "png");
+	}
       }
     }
     }
-
 
 
     //print table
@@ -455,10 +479,16 @@ void computeAE_charged_plotEff(std::string nonResonantFile, std::string Resonant
     outFileLong << " x vtxCLEff = \t " << nEv_vtxCLEff[ij] << " \t /muonTag = " << nEv_vtxCLEff[ij]/nEv_muonTag[ij]
 		<< " \t " << nEv_vtxCLEff[5] << " \t /muonTag = " << nEv_vtxCLEff[5]/nEv_muonTag[5]
 		<< " \t double ratio = " << (nEv_vtxCLEff[ij]/nEv_muonTag[ij])/(nEv_vtxCLEff[5]/nEv_muonTag[5]) << "\n";
-    
+    /*    
     outFileLong << " x DCAEff = \t " << nEv_DCAEff[ij] << " \t /muonTag = " << nEv_DCAEff[ij]/nEv_muonTag[ij]
 		<< " \t " << nEv_DCAEff[5]  << " \t /muonTag = " << nEv_DCAEff[5]/nEv_muonTag[5]
 		<< " \t double ratio = " << (nEv_DCAEff[ij]/nEv_muonTag[ij])/(nEv_DCAEff[5]/nEv_muonTag[5]) << std::endl;
+    */
+
+    outFileLong << " x LxyEff = \t " << nEv_LxyEff[ij] << " \t /muonTag = " << nEv_LxyEff[ij]/nEv_muonTag[ij]
+		<< " \t " << nEv_LxyEff[5]  << " \t /muonTag = " << nEv_LxyEff[5]/nEv_muonTag[5]
+		<< " \t double ratio = " << (nEv_LxyEff[ij]/nEv_muonTag[ij])/(nEv_LxyEff[5]/nEv_muonTag[5]) << std::endl;
+
   }
   outFileLong.close();
 
