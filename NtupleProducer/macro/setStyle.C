@@ -71,10 +71,10 @@ void setStyle()
   // Margins:
   style->SetPadTopMargin(0.05);
   style->SetPadBottomMargin(0.13);
-  // style->SetPadLeftMargin(0.1);
-  // style->SetPadRightMargin(0.14);
-  style->SetPadLeftMargin(0.18);
-  style->SetPadRightMargin(0.05);
+  style->SetPadLeftMargin(0.15);
+  style->SetPadRightMargin(0.12);
+  // style->SetPadLeftMargin(0.18);
+  // style->SetPadRightMargin(0.05);
 
                                                                                                                                               
   // For the Global title:

@@ -327,6 +327,8 @@ int main(int argc, char** argv) {
       //Disabled for now
       //if(tree->BToKmumu_kaon_charge[i_BToKmumu]*tree->Muon_charge[_Muon_sel_index]>0) continue; //Only consider BToKmumu with opposite charge to muon
       
+      if(tree->BToKmumu_mu1_charge[i_BToKmumu] * tree->BToKmumu_mu2_charge[i_BToKmumu] > 0.) continue;
+
       float B_CL_vtx = tree->BToKmumu_CL_vtx[i_BToKmumu];
       
       if( best_B_CL_vtx < 0. || B_CL_vtx>best_B_CL_vtx ){

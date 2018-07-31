@@ -92,9 +92,11 @@ public :
    float BToKmumu_kaon_eta[kBToKmumuMax];
    float BToKmumu_kaon_phi[kBToKmumuMax];
    float BToKmumu_mu1_pt[kBToKmumuMax];
+   int BToKmumu_mu1_charge[kBToKmumuMax];
    float BToKmumu_mu1_eta[kBToKmumuMax];
    float BToKmumu_mu1_phi[kBToKmumuMax];
    int BToKmumu_mu1_index[kBToKmumuMax];
+   int BToKmumu_mu2_charge[kBToKmumuMax];
    float BToKmumu_mu2_pt[kBToKmumuMax];
    float BToKmumu_mu2_eta[kBToKmumuMax];
    float BToKmumu_mu2_phi[kBToKmumuMax];
@@ -257,10 +259,12 @@ void NanoAODTree::Init(TChain* tree)
     _tree->SetBranchAddress("BToKmumu_kaon_pt",&BToKmumu_kaon_pt);
     _tree->SetBranchAddress("BToKmumu_kaon_eta",&BToKmumu_kaon_eta);
     _tree->SetBranchAddress("BToKmumu_kaon_phi",&BToKmumu_kaon_phi);
+    _tree->SetBranchAddress("BToKmumu_mu1_charge",&BToKmumu_mu1_charge);
     _tree->SetBranchAddress("BToKmumu_mu1_pt",&BToKmumu_mu1_pt);
     _tree->SetBranchAddress("BToKmumu_mu1_eta",&BToKmumu_mu1_eta);
     _tree->SetBranchAddress("BToKmumu_mu1_phi",&BToKmumu_mu1_phi);
     _tree->SetBranchAddress("BToKmumu_mu1_index",&BToKmumu_mu1_index);
+    _tree->SetBranchAddress("BToKmumu_mu2_charge",&BToKmumu_mu2_charge);
     _tree->SetBranchAddress("BToKmumu_mu2_pt",&BToKmumu_mu2_pt);
     _tree->SetBranchAddress("BToKmumu_mu2_eta",&BToKmumu_mu2_eta);
     _tree->SetBranchAddress("BToKmumu_mu2_phi",&BToKmumu_mu2_phi);
