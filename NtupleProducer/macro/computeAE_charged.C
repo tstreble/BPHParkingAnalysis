@@ -37,7 +37,7 @@
 #include "TStyle.h"
 #include "TChain.h"
 
-void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, int isEleFinalState){
+void computeAE_charged(TString nonResonantFile, TString ResonantFile, int isEleFinalState){
 
   gROOT->Reset();
   gROOT->Macro("setStyle.C");
@@ -51,8 +51,8 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, in
   TChain* t1 = new TChain("Events");
   TChain* t2 = new TChain("Events");
 
-  t1->Add(nonResonantFile.c_str());
-  t2->Add(ResonantFile.c_str());
+  t1->Add(nonResonantFile);
+  t2->Add(ResonantFile);
 
 
   //muon tag with soft ID https://twiki.cern.ch/twiki/bin/viewauth/CMS/SWGuideMuonIdRun2#Soft_Muon
@@ -64,27 +64,25 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, in
   //if false => move to reco ee invariant mass bins
 
   //selections
-  std::string cut_muonTag = "Muon_sel_index != -1";
-  // should require that muonTag does not match with gen probes?
-  std::string cut_genAcc = "GenPart_e2FromB_index != -1 && GenPart_pt[GenPart_e2FromB_index] > 1. && abs(GenPart_eta[GenPart_e2FromB_index]) < 2.4 && GenPart_e1FromB_index != -1 && GenPart_pt[GenPart_e1FromB_index] > 1. && abs(GenPart_eta[GenPart_e1FromB_index]) < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && abs(GenPart_eta[GenPart_KFromB_index]) < 2.4";
-  std::string cut_genEff = "BToKee_gen_index != -1 && BToKee_gen_index == BToKee_sel_index";
-  std::string cut_chargeEff = "BToKee_ele1_charge[BToKee_gen_index]*BToKee_ele2_charge[BToKee_gen_index] < 0.";
-  std::string cut_alphaEff = "BToKee_cosAlpha[BToKee_gen_index] > 0.99";
-  std::string cut_vtxCLEff = "BToKee_CL_vtx[BToKee_gen_index] > 0.1";  
-  std::string cut_DCAEff  = "abs(BToKee_kaon_DCASig[BToKee_gen_index]) > 6";
+  TString cut_genAcc = "GenPart_e2FromB_index != -1 && GenPart_pt[GenPart_e2FromB_index] > 1. && abs(GenPart_eta[GenPart_e2FromB_index]) < 2.4 && GenPart_e1FromB_index != -1 && GenPart_pt[GenPart_e1FromB_index] > 1. && abs(GenPart_eta[GenPart_e1FromB_index]) < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && abs(GenPart_eta[GenPart_KFromB_index]) < 2.4";
+  TString cut_genEff = cut_genAcc + "&& BToKee_gen_index != -1 && BToKee_gen_index == BToKee_sel_index";
+  TString cut_chargeEff = cut_genEff + "&& BToKee_ele1_charge[BToKee_gen_index]*BToKee_ele2_charge[BToKee_gen_index] < 0.";
+  TString cut_alphaEff = cut_chargeEff + "&& BToKee_cosAlpha[BToKee_gen_index] > 0.99";
+  TString cut_vtxCLEff = cut_alphaEff + "&& BToKee_CL_vtx[BToKee_gen_index] > 0.1";
+  TString cut_LxyEff  = cut_vtxCLEff + "&& abs(BToKee_Lxy[BToKee_gen_index]) > 6";
 
   if(!isEleFinalState){
-    cut_muonTag = "Muon_probe_index != -1";
     cut_genAcc = "GenPart_mu2FromB_index != -1 && GenPart_pt[GenPart_mu2FromB_index] > 1. && abs(GenPart_eta[GenPart_mu2FromB_index]) < 2.4 && GenPart_mu1FromB_index != -1 && GenPart_pt[GenPart_mu1FromB_index] > 1. && abs(GenPart_eta[GenPart_mu1FromB_index]) < 2.4 && GenPart_KFromB_index != -1 && GenPart_pt[GenPart_KFromB_index] > 1. && abs(GenPart_eta[GenPart_KFromB_index]) < 2.4";
-    cut_genEff = "BToKmumu_gen_index != -1 && BToKmumu_gen_index == BToKmumu_sel_index";
-    cut_chargeEff = "BToKmumu_mu1_charge[BToKmumu_gen_index]*BToKmumu_mu2_charge[BToKmumu_gen_index] < 0.";
-    cut_alphaEff = "BToKmumu_cosAlpha[BToKmumu_gen_index] > 0.99";
-    cut_vtxCLEff = "BToKmumu_CL_vtx[BToKmumu_gen_index] > 0.1";
-    cut_DCAEff  = "abs(BToKmumu_kaon_DCASig[BToKmumu_gen_index]) > 6";
+    cut_genEff = cut_genAcc + "&& BToKmumu_gen_index != -1 && BToKmumu_gen_index == BToKmumu_sel_index";
+    cut_chargeEff = cut_genEff + "&& BToKmumu_mu1_charge[BToKmumu_gen_index]*BToKmumu_mu2_charge[BToKmumu_gen_index] < 0.";
+    cut_alphaEff = cut_chargeEff + "&& BToKmumu_cosAlpha[BToKmumu_gen_index] > 0.99";
+    cut_vtxCLEff = cut_alphaEff + "&& BToKmumu_CL_vtx[BToKmumu_gen_index] > 0.1";
+    cut_LxyEff  = cut_vtxCLEff + "&& abs(BToKmumu_Lxy[BToKmumu_gen_index]) > 6";
   }
 
-  std::vector<std::string> llMassCut;
-  std::vector<std::string> llGenMassCut;
+
+  std::vector<TString> llMassCut;
+  std::vector<TString> llGenMassCut;
 
   std::vector<float> llMassBoundary;
   llMassBoundary.push_back(0.);
@@ -94,13 +92,15 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, in
   llMassBoundary.push_back(3.3);
   llMassBoundary.push_back(3.58);
 
+  unsigned JPsi_bin = 3;
+
   for(int ij=0; ij<5; ++ij){
-    std::string cut = Form("BToKee_eeKFit_ee_mass[BToKee_gen_index] > %.2f && BToKee_eeKFit_ee_mass[BToKee_gen_index] < %.2f",
+    TString cut = Form("BToKee_gen_index>=0 && BToKee_eeKFit_ee_mass[BToKee_gen_index] > %.2f && BToKee_eeKFit_ee_mass[BToKee_gen_index] < %.2f",
                            llMassBoundary.at(ij), llMassBoundary.at(ij+1));
-    std::string gencut = Form("BToKee_gen_eeMass > %.2f && BToKee_gen_eeMass < %.2f",
+    TString gencut = Form("BToKee_gen_eeMass > %.2f && BToKee_gen_eeMass < %.2f",
                               llMassBoundary.at(ij), llMassBoundary.at(ij+1));
     if(!isEleFinalState){
-      cut = Form("BToKmumu_mumuKFit_mumu_mass[BToKmumu_gen_index] > %.2f && BToKmumu_mumuKFit_mumu_mass[BToKmumu_gen_index] < %.2f",
+      cut = Form("BToKmumu_gen_index>=0 && BToKmumu_mumuKFit_mumu_mass[BToKmumu_gen_index] > %.2f && BToKmumu_mumuKFit_mumu_mass[BToKmumu_gen_index] < %.2f",
 		 llMassBoundary.at(ij), llMassBoundary.at(ij+1));
       gencut = Form("BToKmumu_gen_mumuMass > %.2f && BToKmumu_gen_mumuMass < %.2f",
 		    llMassBoundary.at(ij), llMassBoundary.at(ij+1));
@@ -111,71 +111,62 @@ void computeAE_charged(std::string nonResonantFile, std::string ResonantFile, in
     llGenMassCut.push_back(gencut);
   }
 
+  vector<TString> cut_name = {"muonTag","genAcc","genEff","recoEff","chargeEff","alphaEff","vtxCLEff","LxyEff"};
+
   //non resonant first - JPsi last
-  float nEv_muonTag[6] = {0.};
-  float nEv_genAcc[6] = {0.};
-  float nEv_genEff[6] = {0.};
-  float nEv_recoEff[6] = {0.};  /* same as genEff, but computed in reco ee invarinat mass bins*/
-  float nEv_chargeEff[6] = {0.};
-  float nEv_alphaEff[6] = {0.};
-  float nEv_vtxCLEff[6] = {0.};
-  float nEv_DCAEff[6] = {0.};
+  vector<float> nEv;
+  nEv.resize(cut_name.size(), 0.);
+  vector<vector<float> > nEv_cuts; //nEv_cuts[i][j] = #events passing cut j in mass bin i
+  nEv_cuts.resize(llMassCut.size()+1,nEv);
 
-  for(int ij=0; ij<5; ++ij){
-    nEv_muonTag[ij] = t1->Draw("Muon_sel_index", (llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_genAcc[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_genEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_recoEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_chargeEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_alphaEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_vtxCLEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-    nEv_DCAEff[ij] = t1->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(ij)+" && "+llGenMassCut.at(ij)).c_str(), "goff");
-  }
-  nEv_muonTag[5] = t2->Draw("Muon_sel_index", (llGenMassCut.at(3)).c_str(), "goff");
-  nEv_genAcc[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  nEv_genEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  nEv_recoEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  nEv_chargeEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  nEv_alphaEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  nEv_vtxCLEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  nEv_DCAEff[5] = t2->Draw("Muon_sel_index", (cut_genAcc+" && "+cut_genEff+" && "+cut_chargeEff+" && "+cut_alphaEff+" && "+cut_vtxCLEff+" && "+cut_DCAEff+" && "+llMassCut.at(3)+" && "+llGenMassCut.at(3)).c_str(), "goff");
-  
+  for(unsigned i=0; i<llMassCut.size()+1; i++){
 
+    TString llGenMCut;
+    TString llMCut;
+    if(i<llMassCut.size()){
+      llGenMCut = llGenMassCut[i];
+      llMCut = llMassCut[i];
+    }
+    else{
+      llGenMCut = llGenMassCut[JPsi_bin];
+      llMCut = llMassCut[JPsi_bin];
+    }
 
-  //upgrate to 2D plot for future or something better than printout
-  for(int ij=0; ij<5; ++ij){
-    // std::cout << " \n mass bin \t nonResonant = " << llGenMassCut.at(ij) << "\t        \t Resonant (J/Psi) \t   \t \t" << std::endl;
-    std::cout << " \n   \t nonResonant ll mass-bin [" << llMassBoundary.at(ij) << "-"<< llMassBoundary.at(ij+1) << "] \t       \t Resonant (J/Psi) \t   \t \t" << std::endl;
-    std::cout << " muonTag = \t " << nEv_muonTag[ij] << " \t              \t \t        \t " << nEv_muonTag[5]  << " \t " << std::endl;
+    vector<TString> cuts = {llGenMCut,
+			    llGenMCut + "&&" + cut_genAcc,
+			    llGenMCut + "&&" + cut_genEff,
+			    llGenMCut + "&&" + llMCut + "&&" + cut_genEff,
+			    llGenMCut + "&&" + llMCut + "&&" + cut_chargeEff,
+			    llGenMCut + "&&" + llMCut + "&&" + cut_alphaEff,
+			    llGenMCut + "&&" + llMCut + "&&" + cut_vtxCLEff,
+			    llGenMCut + "&&" + llMCut + "&&" + cut_LxyEff};
 
-    std::cout << " genAcc = \t " << nEv_genAcc[ij] << " \t /muonTag = " << nEv_genAcc[ij]/nEv_muonTag[ij]
-	      << "               \t " << nEv_genAcc[5] << " \t  /muonTag = " << nEv_genAcc[5]/nEv_muonTag[5] 
-	      << " \t double ratio = \t" << (nEv_genAcc[ij]/nEv_muonTag[ij])/(nEv_genAcc[5]/nEv_muonTag[5]) << "\n";
-
-    std::cout << " x genEff = \t " << nEv_genEff[ij] << " \t  /muonTag = " << nEv_genEff[ij]/nEv_muonTag[ij]
-	      << "                 \t " << nEv_genEff[5] << " \t  /muonTag = " << nEv_genEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = \t" << (nEv_genEff[ij]/nEv_muonTag[ij])/(nEv_genEff[5]/nEv_muonTag[5]) << "\n";
-
-    std::cout << " x recoEff = \t " << nEv_recoEff[ij] << " \t  /muonTag = " << nEv_recoEff[ij]/nEv_muonTag[ij]
-	      << "                 \t " << nEv_recoEff[5] << " \t  /muonTag = " << nEv_recoEff[5]/nEv_muonTag[5]
-	      << " \t  double ratio = \t" << (nEv_recoEff[ij]/nEv_muonTag[ij])/(nEv_recoEff[5]/nEv_muonTag[5]) << "\n";
-
-    std::cout << " x chargeEff = \t " << nEv_chargeEff[ij] << " \t  /muonTag = " << nEv_chargeEff[ij]/nEv_muonTag[ij]
-	      << "                 \t " << nEv_chargeEff[5] << " \t  /muonTag = " << nEv_chargeEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = \t" << (nEv_chargeEff[ij]/nEv_muonTag[ij])/(nEv_chargeEff[5]/nEv_muonTag[5]) << "\n";
-
-    std::cout << " x alphaEff = \t " << nEv_alphaEff[ij] << " \t  /muonTag = " << nEv_alphaEff[ij]/nEv_muonTag[ij]
-	      << "               \t " << nEv_alphaEff[5] << " \t  /muonTag = " << nEv_alphaEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = \t" << (nEv_alphaEff[ij]/nEv_muonTag[ij])/(nEv_alphaEff[5]/nEv_muonTag[5]) << "\n";
-
-    std::cout << " x vtxCLEff = \t " << nEv_vtxCLEff[ij] << " \t  /muonTag = " << nEv_vtxCLEff[ij]/nEv_muonTag[ij]
-	      << "               \t " << nEv_vtxCLEff[5] << " \t  /muonTag = " << nEv_vtxCLEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = \t" << (nEv_vtxCLEff[ij]/nEv_muonTag[ij])/(nEv_vtxCLEff[5]/nEv_muonTag[5]) << "\n";
-
-    std::cout << " x DCAEff = \t " << nEv_DCAEff[ij] << " \t  /muonTag = " << nEv_DCAEff[ij]/nEv_muonTag[ij]
-	      << "                 \t " << nEv_DCAEff[5]  << " \t  /muonTag = " << nEv_DCAEff[5]/nEv_muonTag[5]
-	      << " \t double ratio = \t" << (nEv_DCAEff[ij]/nEv_muonTag[ij])/(nEv_DCAEff[5]/nEv_muonTag[5]) << std::endl;
+    for(unsigned j=0; j<cuts.size(); j++){
+      if(i<llMassCut.size()) nEv_cuts[i][j] = t1->GetEntries(cuts[j]); //Non-resonant
+      else nEv_cuts[i][j] = t2->GetEntries(cuts[j]); //Resonant
+    }
   }
 
+
+
+  //upgrade to 2D plot for future or something better than printout
+  for(unsigned i=0; i<llMassCut.size(); i++){
+    std::cout << " \n   \t nonResonant ll mass-bin [" << llMassBoundary.at(i) << "-"<< llMassBoundary.at(i+1) << "] \t       \t Resonant (J/Psi) \t   \t \t" << std::endl;
+
+    for(unsigned j=0; j<cut_name.size(); j++){
+      if(j==0){
+	std::cout << " " << cut_name[j] << " = \t " << nEv_cuts[i][j] << " \t              \t \t        \t " << nEv_cuts[llMassCut.size()][j]  << " \t " << std::endl;
+      }
+      else{
+	double eff = nEv_cuts[i][j]/nEv_cuts[i][0];
+	double eff_JPsi = nEv_cuts[llMassCut.size()][j]/nEv_cuts[llMassCut.size()][0];
+	std::cout << " " << cut_name[j] << " = \t " << nEv_cuts[i][j] << " \t /muonTag = " << eff
+		  << "               \t " << nEv_cuts[llMassCut.size()][j] << " \t  /muonTag = " << eff_JPsi
+		  << " \t double ratio = \t" << eff/eff_JPsi << "\n";
+      }
+
+    }
+
+  }
 
 }
