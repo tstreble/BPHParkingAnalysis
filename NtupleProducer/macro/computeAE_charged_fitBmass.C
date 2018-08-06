@@ -44,6 +44,7 @@
 #include "RooCBShape.h"
 #include "RooAddPdf.h"
 #include "RooWorkspace.h"
+#include "RooFitResult.h"
 #include "TCanvas.h"
 #include "TAxis.h"
 #include "RooPlot.h"
@@ -51,7 +52,7 @@
 using namespace RooFit;
 
 
-void computeAE_charged_fitBmass(std::string nonResonantFile, std::string ResonantFile, int isEleFinalState, bool foldGenMassBin){
+void computeAE_charged_fitBmass(std::string nonResonantFile, std::string ResonantFile, int isEleFinalState, bool foldGenMassBin=true){
 
   gROOT->Reset();
   gROOT->Macro("setStyle.C");
@@ -232,16 +233,21 @@ void computeAE_charged_fitBmass(std::string nonResonantFile, std::string Resonan
 	      << " bkg events = " << parB->getValV() << " error = " << parB->getError() << std::endl;
   }
   
+  float errb = pow(nEvError_postFit[0]/nEv_postFit[0], 2);
 
   std::cout << " ***** summary ***** "<< std::endl;
   for(int ij=0; ij<6; ++ij){
 
-    std::cout << "\n \n  category: " << h_Bmass_llbin[ij]->GetName() << " \t integral muonTag = " << nEv_muonTag[ij] 
-	      << " evtCount " << nEv_LxyEff[ij] << " postFit " << nEv_postFit[ij] <<"+/-"<<nEvError_postFit[ij] 
-	      << "\n \t eff(/muonTag)    evtCount " << nEv_LxyEff[ij]/nEv_muonTag[ij] 
-	      << " postFit " << nEv_postFit[ij]/nEv_muonTag[ij] << "+/-" << nEvError_postFit[ij]/nEv_muonTag[ij]
-	      << "\n  \t double ratio wrt JPsi    evtCount " << (nEv_LxyEff[ij]/nEv_muonTag[ij])/(nEv_LxyEff[0]/nEv_muonTag[0])
-	      << " postFit " << (nEv_postFit[ij]/nEv_muonTag[ij])/(nEv_postFit[0]/nEv_muonTag[0]) << std::endl;
+    float errRatio = pow(nEvError_postFit[ij]/nEv_postFit[ij], 2) + errb;
+    errRatio = sqrt(errRatio) * nEvError_postFit[ij]/nEvError_postFit[0];
+
+    std::cout << "\n \n  category: " << h_Bmass_llbin[ij]->GetName()
+              << " \t integral muonTag = " << nEv_muonTag[ij]
+              << " evtCount " << nEv_LxyEff[ij] << " postFit " << nEv_postFit[ij] <<"+/-"<<nEvError_postFit[ij]
+              << "\n \t\t\t eff(/muonTag)    evtCount " << nEv_LxyEff[ij]/nEv_muonTag[ij]
+              << " postFit " << nEv_postFit[ij]/nEv_muonTag[ij] << "+/-" << nEvError_postFit[ij]/nEv_muonTag[ij]
+              << "\n  \t\t\t double ratio wrt JPsi    evtCount " << (nEv_LxyEff[ij]/nEv_muonTag[ij])/(nEv_LxyEff[0]/nEv_muonTag[0])
+              << " postFit " << (nEv_postFit[ij]/nEv_muonTag[ij])/(nEv_postFit[0]/nEv_muonTag[0]) << "+/-"<<errRatio<< std::endl;
   }
 
 }
