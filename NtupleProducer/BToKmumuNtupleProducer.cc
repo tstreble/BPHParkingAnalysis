@@ -373,39 +373,58 @@ int main(int argc, char** argv) {
 
 	for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
 
+	  _GenPart_JPsiFromB_index = -1;
+	  _GenPart_mu1FromB_index = -1;
+	  _GenPart_mu2FromB_index = -1;
+	  _GenPart_KFromB_index = -1;
+
 	  if(abs(tree->GenPart_pdgId[i_Bu])==521){
 
 	    for(int i_gen=0; i_gen<nGenPart; i_gen++){
+
 	      int pdgId = tree->GenPart_pdgId[i_gen];
 	      int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	      if(abs(pdgId)==443 && mother_index == i_Bu)
-		_GenPart_JPsiFromB_index = i_gen;
-	      else if(abs(pdgId)==321 && mother_index == i_Bu)
-		_GenPart_KFromB_index = i_gen;
-	      if(_GenPart_JPsiFromB_index>=0 && _GenPart_KFromB_index>=0){
-		_GenPart_BToKmumu_index = i_Bu;
-		break;
+
+	      int mu1_index = -1;
+	      int mu2_index = -1;
+
+	      if(abs(pdgId)==443 && mother_index == i_Bu){
+
+		for(int j_gen=0; j_gen<nGenPart; j_gen++){
+
+		  int pdgId = tree->GenPart_pdgId[j_gen];
+		  int mother_index = tree->GenPart_genPartIdxMother[i_gen];
+		  if(abs(pdgId)==13 && mother_index == i_gen && mu1_index<0)
+		    mu1_index = i_gen;
+		  else if(abs(pdgId)==13 && mother_index == i_gen)
+		    mu2_index = i_gen;
+		  if(mu1_index>=0 && mu2_index>=0) break;
+
+		}
+
+		if(mu1_index>=0 && mu2_index>=0){
+		  _GenPart_JPsiFromB_index = i_gen;
+		  _GenPart_mu1FromB_index = mu1_index;
+		  _GenPart_mu2FromB_index = mu2_index;
+		}
+		else break;
+
 	      }
+
+	      else if(abs(pdgId)==321 && mother_index == i_Bu) _GenPart_KFromB_index = i_gen;
+
+	      else if(mother_index == i_Bu) break; //Additional B decay products
+
 	    }
 
 	  }
 
-	  if(_GenPart_BToKmumu_index>=0) break;
+	  if(_GenPart_JPsiFromB_index>=0 && _GenPart_KFromB_index>=0){
+	    _GenPart_BToKmumu_index = i_Bu;
+	    break;
+	  }
 
-	}
-
-
-	for(int i_gen=0; i_gen<nGenPart; i_gen++){
-
-	  int pdgId = tree->GenPart_pdgId[i_gen];
-	  int mother_index = tree->GenPart_genPartIdxMother[i_gen];
-	  if(abs(pdgId)==13 && mother_index == _GenPart_JPsiFromB_index && _GenPart_mu1FromB_index<0)
-	    _GenPart_mu1FromB_index = i_gen;
-	  else if(abs(pdgId)==13 && mother_index == _GenPart_JPsiFromB_index)
-	    _GenPart_mu2FromB_index = i_gen;
-	  if(_GenPart_mu1FromB_index>=0 && _GenPart_mu2FromB_index>=0) break;
-	
-	}
+	}	
 
       }
 
@@ -414,9 +433,15 @@ int main(int argc, char** argv) {
 
 	for(int i_Bu=0; i_Bu<nGenPart; i_Bu++){
 
+	  _GenPart_JPsiFromB_index = -1;
+	  _GenPart_mu1FromB_index = -1;
+	  _GenPart_mu2FromB_index = -1;
+	  _GenPart_KFromB_index = -1;
+
 	  if(abs(tree->GenPart_pdgId[i_Bu])==521){
 
 	    for(int i_gen=0; i_gen<nGenPart; i_gen++){
+
 	      int pdgId = tree->GenPart_pdgId[i_gen];
 	      int mother_index = tree->GenPart_genPartIdxMother[i_gen];
 	      if(abs(pdgId)==13 && mother_index == i_Bu && _GenPart_mu1FromB_index<0)
@@ -425,158 +450,159 @@ int main(int argc, char** argv) {
 		_GenPart_mu2FromB_index = i_gen;
 	      else if(abs(pdgId)==321 && mother_index == i_Bu)
 		_GenPart_KFromB_index = i_gen;
-	      if(_GenPart_mu1FromB_index>=0 && _GenPart_mu2FromB_index>=0 && _GenPart_KFromB_index>=0){
-		_GenPart_BToKmumu_index = i_Bu;
-		break;
-	      }
+	      else if(mother_index == i_Bu) break;
+
 	    }
 
+	  }//if B
+
+	  if(_GenPart_mu1FromB_index>=0 && _GenPart_mu2FromB_index>=0 && _GenPart_KFromB_index>=0){
+	    _GenPart_BToKmumu_index = i_Bu;
+	    break;
 	  }
 	  
-	  if(_GenPart_BToKmumu_index>=0) break;
+	} //loop over B
+
+      }
+
+
+      if(_GenPart_BToKmumu_index>=0){
+
+	//mu1FromB stored a leading daughter
+	if(tree->GenPart_pt[_GenPart_mu2FromB_index]>tree->GenPart_pt[_GenPart_mu1FromB_index]){
+	  int i_temp = _GenPart_mu1FromB_index;
+	  _GenPart_mu1FromB_index = _GenPart_mu2FromB_index;
+	  _GenPart_mu2FromB_index = i_temp;
+	}
+
+	TLorentzVector gen_KFromB_tlv;
+	TLorentzVector gen_mu1FromB_tlv;
+	TLorentzVector gen_mu2FromB_tlv;
+
+	gen_KFromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_KFromB_index],
+				    tree->GenPart_eta[_GenPart_KFromB_index],
+				    tree->GenPart_phi[_GenPart_KFromB_index],
+				    KaonMass_);
+	gen_mu1FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_mu1FromB_index],
+				      tree->GenPart_eta[_GenPart_mu1FromB_index],
+				      tree->GenPart_phi[_GenPart_mu1FromB_index],
+				      MuonMass_);
+	gen_mu2FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_mu2FromB_index],
+				      tree->GenPart_eta[_GenPart_mu2FromB_index],
+				      tree->GenPart_phi[_GenPart_mu2FromB_index],
+				      MuonMass_);
+
+	_BToKmumu_gen_mumuMass = (gen_mu1FromB_tlv+gen_mu2FromB_tlv).Mag();
+	_BToKmumu_gen_mass = (gen_mu1FromB_tlv+gen_mu2FromB_tlv+gen_KFromB_tlv).Mag();
+
+	float best_dR = -1.;
+
+	for(int i_BToKmumu=0; i_BToKmumu<nBToKmumu; i_BToKmumu++){
+
+	  TLorentzVector kaon_tlv;
+	  TLorentzVector mu1_tlv;
+	  TLorentzVector mu2_tlv;
+
+	  kaon_tlv.SetPtEtaPhiM(tree->BToKmumu_kaon_pt[i_BToKmumu],
+				tree->BToKmumu_kaon_eta[i_BToKmumu],
+				tree->BToKmumu_kaon_phi[i_BToKmumu],
+				KaonMass_);
+	  mu1_tlv.SetPtEtaPhiM(tree->BToKmumu_mu1_pt[i_BToKmumu],
+			       tree->BToKmumu_mu1_eta[i_BToKmumu],
+			       tree->BToKmumu_mu1_phi[i_BToKmumu],
+			       MuonMass_);
+	  mu2_tlv.SetPtEtaPhiM(tree->BToKmumu_mu2_pt[i_BToKmumu],
+			       tree->BToKmumu_mu2_eta[i_BToKmumu],
+			       tree->BToKmumu_mu2_phi[i_BToKmumu],
+			       MuonMass_);
+
+	  float dR_KFromB = kaon_tlv.DeltaR(gen_KFromB_tlv);
+	  float dR_mu1FromB = min(mu1_tlv.DeltaR(gen_mu1FromB_tlv),mu2_tlv.DeltaR(gen_mu1FromB_tlv));
+	  float dR_mu2FromB = min(mu1_tlv.DeltaR(gen_mu2FromB_tlv),mu2_tlv.DeltaR(gen_mu2FromB_tlv));
+	  //Should check that same objects not selected twice
+
+	  float dR_tot = dR_KFromB + dR_mu1FromB + dR_mu2FromB; //In case several BToKmumu matches, take the closest one in dR_tot
+
+	  if( dR_KFromB<0.1 && dR_mu1FromB<0.1 && dR_mu2FromB<0.1
+	      && (best_dR<0. || dR_tot<best_dR) ){
+	    best_dR = dR_tot;
+	    _BToKmumu_gen_index = i_BToKmumu;
+	  }
 
 	}
 
-      }
+	float best_dR_mu1FromB = -1.;
+	float best_dR_mu2FromB = -1.;
+	float best_dR_KFromB = -1.;
+
+	for(int i_mu=0; i_mu<nMuon; i_mu++){
+
+	  TLorentzVector mu_tlv;
+	  mu_tlv.SetPtEtaPhiM(tree->Muon_pt[i_mu],
+			      tree->Muon_eta[i_mu],
+			      tree->Muon_phi[i_mu],
+			      MuonMass_);
+
+	  float dR_mu1FromB = mu_tlv.DeltaR(gen_mu1FromB_tlv);
+	  float dR_mu2FromB = mu_tlv.DeltaR(gen_mu2FromB_tlv);
+
+	  if(dR_mu1FromB<0.1 && (best_dR_mu1FromB<0. || dR_mu1FromB<best_dR_mu1FromB)){
+	    _Muon_mu1FromB_index = i_mu;
+	    best_dR_mu1FromB = dR_mu1FromB;
+	  }
+	  if(dR_mu2FromB<0.1 && (best_dR_mu2FromB<0. || dR_mu2FromB<best_dR_mu2FromB)){
+	    _Muon_mu2FromB_index = i_mu;
+	    best_dR_mu2FromB = dR_mu2FromB;
+	  }
+
+	}
+
+	int nPFCand = tree->nPFCand;
+	for(int i_pf=0;i_pf<nPFCand;i_pf++){
+
+	  if(abs(tree->PFCand_pdgId[i_pf])!=211) continue;
+
+	  TLorentzVector PFCand_tlv;
+	  PFCand_tlv.SetPtEtaPhiM(tree->PFCand_pt[i_pf],tree->PFCand_eta[i_pf],tree->PFCand_phi[i_pf],tree->PFCand_mass[i_pf]);
+
+	  float dR_KFromB = PFCand_tlv.DeltaR(gen_KFromB_tlv);
+
+	  if(dR_KFromB<0.1 && (best_dR_KFromB<0. || dR_KFromB<best_dR_KFromB)){
+	    _PFCand_genKFromB_index = i_pf;
+	    best_dR_KFromB = dR_KFromB;
+	  }
+
+	}
 
 
-
-      //mu1FromB stored a leading daughter
-      if(tree->GenPart_pt[_GenPart_mu2FromB_index]>tree->GenPart_pt[_GenPart_mu1FromB_index]){
-	int i_temp = _GenPart_mu1FromB_index;
-	_GenPart_mu1FromB_index = _GenPart_mu2FromB_index;
-	_GenPart_mu2FromB_index = i_temp;
-      }
-
-
-      TLorentzVector gen_KFromB_tlv;
-      TLorentzVector gen_mu1FromB_tlv;
-      TLorentzVector gen_mu2FromB_tlv;
-      
-      gen_KFromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_KFromB_index],
-				   tree->GenPart_eta[_GenPart_KFromB_index],
-				   tree->GenPart_phi[_GenPart_KFromB_index],
-				   KaonMass_);
-      gen_mu1FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_mu1FromB_index],
-				       tree->GenPart_eta[_GenPart_mu1FromB_index],
-				       tree->GenPart_phi[_GenPart_mu1FromB_index],
-				       MuonMass_);
-      gen_mu2FromB_tlv.SetPtEtaPhiM(tree->GenPart_pt[_GenPart_mu2FromB_index],
-				       tree->GenPart_eta[_GenPart_mu2FromB_index],
-				       tree->GenPart_phi[_GenPart_mu2FromB_index],
-				       MuonMass_);
-
-
-      _BToKmumu_gen_mumuMass = (gen_mu1FromB_tlv+gen_mu2FromB_tlv).Mag();
-      _BToKmumu_gen_mass = (gen_mu1FromB_tlv+gen_mu2FromB_tlv+gen_KFromB_tlv).Mag();
-
-      float best_dR = -1.;
-
-      for(int i_BToKmumu=0; i_BToKmumu<nBToKmumu; i_BToKmumu++){
-
-	TLorentzVector kaon_tlv;
-	TLorentzVector mu1_tlv;
-	TLorentzVector mu2_tlv;
+	//Gen muon pt filter on probe
 	
-	kaon_tlv.SetPtEtaPhiM(tree->BToKmumu_kaon_pt[i_BToKmumu],
-			      tree->BToKmumu_kaon_eta[i_BToKmumu],
-			      tree->BToKmumu_kaon_phi[i_BToKmumu],
-			      KaonMass_);
-	mu1_tlv.SetPtEtaPhiM(tree->BToKmumu_mu1_pt[i_BToKmumu],
-			     tree->BToKmumu_mu1_eta[i_BToKmumu],
-			     tree->BToKmumu_mu1_phi[i_BToKmumu],
-			     MuonMass_);
-	mu2_tlv.SetPtEtaPhiM(tree->BToKmumu_mu2_pt[i_BToKmumu],
-			     tree->BToKmumu_mu2_eta[i_BToKmumu],
-			     tree->BToKmumu_mu2_phi[i_BToKmumu],
-			     MuonMass_);
+	bool isTagMuonHighPt = false;
+	
+	for(int i_gen=0; i_gen<nGenPart; i_gen++){
+	  
+	  if(i_gen==_GenPart_mu1FromB_index || i_gen==_GenPart_mu2FromB_index) continue;
+	  
+	  int pdgId = tree->GenPart_pdgId[i_gen];
+	  if(abs(pdgId)!=13) continue;
+	  
+	  TLorentzVector gen_tagMu_tlv;
+	  gen_tagMu_tlv.SetPtEtaPhiM(tree->GenPart_pt[i_gen],
+				     tree->GenPart_eta[i_gen],
+				     tree->GenPart_phi[i_gen],
+				     MuonMass_);
 
-	float dR_KFromB = kaon_tlv.DeltaR(gen_KFromB_tlv);
-	float dR_mu1FromB = min(mu1_tlv.DeltaR(gen_mu1FromB_tlv),mu2_tlv.DeltaR(gen_mu1FromB_tlv));
-	float dR_mu2FromB = min(mu1_tlv.DeltaR(gen_mu2FromB_tlv),mu2_tlv.DeltaR(gen_mu2FromB_tlv));
-	//Should check that same objects not selected twice
+	  if(gen_tagMu_tlv.DeltaR(gen_mu1FromB_tlv)>0.1 && gen_tagMu_tlv.DeltaR(gen_mu2FromB_tlv)>0.1 //In case there are several copies of same muon (with FSR for instance)
+	     && gen_tagMu_tlv.Pt()>genMuPtCut){
+	    isTagMuonHighPt = true;
+	    break;
+	  }
 
-	float dR_tot = dR_KFromB + dR_mu1FromB + dR_mu2FromB; //In case several BToKmumu matches, take the closest one in dR_tot
-
-	if( dR_KFromB<0.1 && dR_mu1FromB<0.1 && dR_mu2FromB<0.1
-	    && (best_dR<0. || dR_tot<best_dR) ){
-	  best_dR = dR_tot;
-	  _BToKmumu_gen_index = i_BToKmumu;	  
 	}
+
+	if(!isTagMuonHighPt) continue; //Skip events where the gen filter in MC has been applied to the probe muon
 
       }
-
-
-      float best_dR_mu1FromB = -1.;
-      float best_dR_mu2FromB = -1.;
-      float best_dR_KFromB = -1.;
-
-      for(int i_mu=0; i_mu<nMuon; i_mu++){
-
-	TLorentzVector mu_tlv;
-	mu_tlv.SetPtEtaPhiM(tree->Muon_pt[i_mu],
-			    tree->Muon_eta[i_mu],
-			    tree->Muon_phi[i_mu],
-			    MuonMass_);
-
-	float dR_mu1FromB = mu_tlv.DeltaR(gen_mu1FromB_tlv);
-	float dR_mu2FromB = mu_tlv.DeltaR(gen_mu2FromB_tlv);
-
-	if(dR_mu1FromB<0.1 && (best_dR_mu1FromB<0. || dR_mu1FromB<best_dR_mu1FromB)){
-	  _Muon_mu1FromB_index = i_mu;
-	  best_dR_mu1FromB = dR_mu1FromB;
-	}
-	if(dR_mu2FromB<0.1 && (best_dR_mu2FromB<0. || dR_mu2FromB<best_dR_mu2FromB)){	  
-	  _Muon_mu2FromB_index = i_mu;
-	  best_dR_mu2FromB = dR_mu2FromB;
-	}
-
-      }
-
-
-      int nPFCand = tree->nPFCand;
-      for(int i_pf=0;i_pf<nPFCand;i_pf++){
-
-	if(abs(tree->PFCand_pdgId[i_pf])!=211) continue;
-
-	TLorentzVector PFCand_tlv;
-	PFCand_tlv.SetPtEtaPhiM(tree->PFCand_pt[i_pf],tree->PFCand_eta[i_pf],tree->PFCand_phi[i_pf],tree->PFCand_mass[i_pf]);
-
-	float dR_KFromB = PFCand_tlv.DeltaR(gen_KFromB_tlv);
-
-	if(dR_KFromB<0.1 && (best_dR_KFromB<0. || dR_KFromB<best_dR_KFromB)){
-	  _PFCand_genKFromB_index = i_pf;
-	  best_dR_KFromB = dR_KFromB;
-	}
-
-      }
-
-      //Gen muon pt filter on probe
-
-      bool isTagMuonHighPt = false;
-
-      for(int i_gen=0; i_gen<nGenPart; i_gen++){
-
-	if(i_gen==_GenPart_mu1FromB_index || i_gen==_GenPart_mu2FromB_index) continue;
-
-	int pdgId = tree->GenPart_pdgId[i_gen];
-	if(abs(pdgId)!=13) continue;
-
-	TLorentzVector gen_tagMu_tlv;
-	gen_tagMu_tlv.SetPtEtaPhiM(tree->GenPart_pt[i_gen],
-				   tree->GenPart_eta[i_gen],
-				   tree->GenPart_phi[i_gen],
-				   MuonMass_);
-
-	if(gen_tagMu_tlv.DeltaR(gen_mu1FromB_tlv)>0.1 && gen_tagMu_tlv.DeltaR(gen_mu2FromB_tlv)>0.1 //In case there are several copies of same muon (with FSR for instance)
-	   && gen_tagMu_tlv.Pt()>genMuPtCut){
-	  isTagMuonHighPt = true;
-	  break;
-	}
-
-      }
-
-      if(!isTagMuonHighPt) continue; //Skip events where the gen filter in MC has been applied to the probe muon
 
 
 
