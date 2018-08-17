@@ -332,6 +332,8 @@ int main(int argc, char** argv) {
     }
 
 
+    if(isData && _BToKee_sel_index<0) continue;
+
     
     //Select the BToKee candidate based on gen matching
 
