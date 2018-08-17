@@ -340,6 +340,9 @@ int main(int argc, char** argv) {
 
     //Take as probe muon leading soft ID muon + trigger-matched if BPHParking data
 
+    if(isData && _BToKmumu_sel_index<0) continue;
+
+
     if(_BToKmumu_sel_index>=0){
       
       for(int i_mu=0; i_mu<nMuon; i_mu++){
