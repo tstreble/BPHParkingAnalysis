@@ -396,11 +396,11 @@ int main(int argc, char** argv) {
 		for(int j_gen=0; j_gen<nGenPart; j_gen++){
 
 		  int pdgId = tree->GenPart_pdgId[j_gen];
-		  int mother_index = tree->GenPart_genPartIdxMother[i_gen];
+		  int mother_index = tree->GenPart_genPartIdxMother[j_gen];
 		  if(abs(pdgId)==13 && mother_index == i_gen && mu1_index<0)
-		    mu1_index = i_gen;
+		    mu1_index = j_gen;
 		  else if(abs(pdgId)==13 && mother_index == i_gen)
-		    mu2_index = i_gen;
+		    mu2_index = j_gen;
 		  if(mu1_index>=0 && mu2_index>=0) break;
 
 		}
