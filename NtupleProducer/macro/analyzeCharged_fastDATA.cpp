@@ -58,7 +58,7 @@ int main(int argc, char *argv[]){
   int isEleFinalState = atoi(argv[1]);
   std::string dataset = "-1";
   int nMaxEvents = -1;
-  if(argc > 2) dataset = atoi(argv[2]);
+  if(argc > 2) dataset = argv[2];
   if(argc > 3) nMaxEvents = atoi(argv[3]);
 
 
