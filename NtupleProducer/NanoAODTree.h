@@ -22,8 +22,8 @@
 const int kMuonMax = 100;
 const int kElectronMax = 100;
 const int kBToKpipiMax = 1000000;
-const int kBToKmumuMax = 10000;
-const int kBToKeeMax = 10000;
+const int kBToKmumuMax = 50000;
+const int kBToKeeMax = 50000;
 const int kGenPartMax = 10000;
 const int kTrigObjMax = 1000;
 const int kPFCandMax = 10000;
@@ -349,7 +349,18 @@ void NanoAODTree::Init(TChain* tree)
 Int_t NanoAODTree::GetEntry(int entry)
 {
 
-  return _tree->GetEntry(entry);
+  int out = _tree->GetEntry(entry);
+
+  if(nMuon>kMuonMax) return -1;
+  if(nElectron>kElectronMax) return -1;
+  if(nBToKpipi>kBToKpipiMax) return -1;
+  if(nBToKmumu>kBToKmumuMax) return -1;
+  if(nBToKee>kBToKeeMax) return -1;
+  if(nGenPart>kGenPartMax) return -1;
+  if(nTrigObj>kTrigObjMax)  return -1;
+  if(nPFCand>kPFCandMax) return -1;
+
+  return out;
 
 } 
 
