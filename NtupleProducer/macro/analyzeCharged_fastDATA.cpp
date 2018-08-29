@@ -62,6 +62,9 @@ int main(int argc, char *argv[]){
   if(argc > 3) nMaxEvents = atoi(argv[3]);
 
 
+  std::cout << " isEleFinalState = " << isEleFinalState << " dataset = " << dataset << " nMaxEvents = " << nMaxEvents << std::endl;
+
+
   gROOT->Reset();
   gROOT->Macro("./setStyle.C");
   gSystem->Load("libRooFit") ;
@@ -108,6 +111,10 @@ int main(int argc, char *argv[]){
   int nEvts = t1->GetEntries();
   std::cout << " #initial n. events: " << nEvts << std::endl;
   
+  UInt_t run = 0;
+  UInt_t lumi = 0;
+  ULong64_t event = 0;
+
   int MuonTag_index = -1;
   int BToKll_sel_index = -1;
   float BToKll_lep1_charge[kBToKllMax];
@@ -120,9 +127,15 @@ int main(int argc, char *argv[]){
   float BToKll_mass[kBToKllMax];
   float BToKll_pt[kBToKllMax];
   float BToKll_kaon_pt[kBToKllMax];
-  int passed_2trk = -1;
+  int passed_2trk[kBToKllMax];
   
   t1->SetBranchStatus("*", 0);
+
+  /*
+  t1->SetBranchStatus("run", 1);                        t1->SetBranchAddress("run", &run);
+  t1->SetBranchStatus("luminosityBlock", 1);            t1->SetBranchAddress("luminosityBlock", &lumi);
+  t1->SetBranchStatus("event", 1);                      t1->SetBranchAddress("event", &event);
+  */
   if(isEleFinalState){
     t1->SetBranchStatus("Muon_sel_index", 1);            t1->SetBranchAddress("Muon_sel_index", &MuonTag_index);
     t1->SetBranchStatus("BToKee_sel_index", 1);          t1->SetBranchAddress("BToKee_sel_index", &BToKll_sel_index);
@@ -136,7 +149,7 @@ int main(int argc, char *argv[]){
     t1->SetBranchStatus("BToKee_mass", 1);               t1->SetBranchAddress("BToKee_mass", &BToKll_mass);
     t1->SetBranchStatus("BToKee_pt", 1);                 t1->SetBranchAddress("BToKee_pt", &BToKll_pt);
     t1->SetBranchStatus("BToKee_kaon_pt", 1);            t1->SetBranchAddress("BToKee_kaon_pt", &BToKll_kaon_pt);
-    t1->SetBranchStatus("BToKee_eeRefit", 1);            t1->SetBranchAddress("BToKee_eeRefit", &passed_2trk);
+    //    t1->SetBranchStatus("BToKee_eeRefit", 1);            t1->SetBranchAddress("BToKee_eeRefit", &passed_2trk);
   }
   else{
     t1->SetBranchStatus("Muon_probe_index", 1);            t1->SetBranchAddress("Muon_probe_index", &MuonTag_index);
@@ -151,7 +164,7 @@ int main(int argc, char *argv[]){
     t1->SetBranchStatus("BToKmumu_mass", 1);               t1->SetBranchAddress("BToKmumu_mass", &BToKll_mass);
     t1->SetBranchStatus("BToKmumu_pt", 1);                 t1->SetBranchAddress("BToKmumu_pt", &BToKll_pt);
     t1->SetBranchStatus("BToKmumu_kaon_pt", 1);            t1->SetBranchAddress("BToKmumu_kaon_pt", &BToKll_kaon_pt);
-    t1->SetBranchStatus("BToKmumu_mumuRefit", 1);          t1->SetBranchAddress("BToKmumu_mumuRefit", &passed_2trk);
+    //    t1->SetBranchStatus("BToKmumu_mumuRefit", 1);          t1->SetBranchAddress("BToKmumu_mumuRefit", &passed_2trk);
   }
 
 
@@ -252,10 +265,10 @@ int main(int argc, char *argv[]){
 
   if(nMaxEvents == -1) nMaxEvents = nEvts;
   for(int iEvt = 0; iEvt<nMaxEvents; ++iEvt){
-
     if(iEvt%500000 == 0) std::cout << " >>> processing event " << iEvt << " " << 1.*iEvt/nEvts*100. << std::endl;
 
     t1->GetEntry(iEvt);
+
     if(MuonTag_index == -1) continue;
     ++nEv_muonTag[0];
 
@@ -298,7 +311,6 @@ int main(int argc, char *argv[]){
     if(BToKll_Lxy[BToKll_sel_index] < 6.) continue;
     ++nEv_LxyEff[massBin];
 
-
     hllMass[massBin]->Fill(llInvMass);
     hllMass_vs_Bmass[massBin]->Fill(BToKll_mass[BToKll_sel_index], llInvMass);
     hBmass[massBin]->Fill(BToKll_mass[BToKll_sel_index]);
@@ -308,7 +320,6 @@ int main(int argc, char *argv[]){
     hBmass[5]->Fill(BToKll_mass[BToKll_sel_index]);
 
   }//loop over events
-
 
   std::string outName = "outMassHistos_DATA_Kee.root";
   if(!isEleFinalState) outName = "outMassHistos_DATA_Kmumu.root";
