@@ -229,7 +229,11 @@ int main(int argc, char** argv) {
 
   for (int iEntry = 0; iEntry < nentries ; iEntry++){
 
-    tree->GetEntry(iEntry);
+    int out = tree->GetEntry(iEntry);
+    if(out<0){
+      cout<<"Error retrievieng entry #"<<iEntry<<endl;
+      return -1;
+    }
 
     if(iEntry%10000==0) cout<<"Entry #"<<iEntry<<" "<< int(100*float(iEntry)/nentries)<<"%"<<endl;
 
