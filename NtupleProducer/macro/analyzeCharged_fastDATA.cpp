@@ -4,7 +4,7 @@
 // ./analyzeCharged_fastDATA 1 -1
 //to run on muon runA
 // ./analyzeCharged_fastDATA 0  runA
-// options are: isEleFinalState (1, 0)   dataset (-1, runA, runB)  nMaxEvents (-1, N)
+// options are: isEleFinalState (1, 0)   dataset (-1, runA, runB, MC)  run (1,2,3,... ) nMaxEvents (-1, N)   saveOUTntu
 
 #include <iostream>
 #include <fstream>
@@ -47,7 +47,7 @@
 using namespace RooFit;
 
 const int kBToKllMax = 100000;
-
+const int kMuonMax = 100;
 
 int main(int argc, char *argv[]){
 
@@ -57,12 +57,16 @@ int main(int argc, char *argv[]){
   }
   int isEleFinalState = atoi(argv[1]);
   std::string dataset = "-1";
+  std::string BPHRun = "-1";
   int nMaxEvents = -1;
+  int saveOUTntu = 0;
   if(argc > 2) dataset = argv[2];
-  if(argc > 3) nMaxEvents = atoi(argv[3]);
+  if(argc > 3) BPHRun = argv[3];
+  if(argc > 4) nMaxEvents = atoi(argv[4]);
+  if(argc > 5) saveOUTntu = atoi(argv[5]);
 
 
-  std::cout << " isEleFinalState = " << isEleFinalState << " dataset = " << dataset << " nMaxEvents = " << nMaxEvents << std::endl;
+  std::cout << " isEleFinalState = " << isEleFinalState << " dataset = " << dataset << " BPHRun = " << BPHRun << " nMaxEvents = " << nMaxEvents << " saveOUTntu = " << saveOUTntu << std::endl;
 
 
   gROOT->Reset();
@@ -74,59 +78,118 @@ int main(int argc, char *argv[]){
   TChain* t1 = new TChain("Events");
   //new prod Kee
   if(isEleFinalState){
-    if(dataset == "runA" || dataset == "-1"){
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking1_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking2_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking3_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking4_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking5_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking6_2018A_18_08_14/*root");
-    }
-    if(dataset == "runB" || dataset == "-1"){
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking1_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking2_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking3_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking4_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking5_2018B_18_08_14/*root");
+    if((dataset == "runA" && BPHRun == "1") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking1_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "2") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking2_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "3") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking3_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "4") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking4_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "5") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking5_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "6") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking6_2018A_18_08_14_new/*root");
+
+    if((dataset == "runB" && BPHRun == "1") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking1_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "2") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking2_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "3") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking3_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "4") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking4_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "5") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKee_ntuple/BPHParking5_2018B_18_08_14_new/*root");
+
+    if(dataset == "MC"){
+      t1->Add("/vols/cms/amartell/BParking/ntuPROD/newNANO_20Aug/ntu_BToKee_18_08_14.root");
     }
   }
   else{
-    if(dataset == "runA" || dataset == "-1"){
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking1_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking2_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking3_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking4_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking5_2018A_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking6_2018A_18_08_14/*root");
-    }
-    if(dataset == "runB" || dataset == "-1"){
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking1_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking2_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking3_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking4_2018B_18_08_14/*root");
-      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking5_2018B_18_08_14/*root");
+    if((dataset == "runA" && BPHRun == "1") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking1_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "2") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking2_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "3") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking3_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "4") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking4_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "5") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking5_2018A_18_08_14_new/*root");
+    if((dataset == "runA" && BPHRun == "6") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking6_2018A_18_08_14_new/*root");
+
+    if((dataset == "runB" && BPHRun == "1") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking1_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "2") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking2_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "3") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking3_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "4") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking4_2018B_18_08_14_new/*root");
+    if((dataset == "runB" && BPHRun == "5") || dataset == "-1") t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BPHParking5_2018B_18_08_14_new/*root");
+
+    if(dataset == "MC"){
+      //t1->Add("/vols/cms/amartell/BParking/ntuPROD/newNANO_20Aug/ntu_BToKmumu_18_08_14.root");
+      t1->Add("/vols/cms/tstreble/BPH/BToKmumu_ntuple/BToKmumu_18_08_14_new/*root");
     }
   }
 
   int nEvts = t1->GetEntries();
   std::cout << " #initial n. events: " << nEvts << std::endl;
-  
+
+  std::string outNtuName = "/vols/cms/amartell/BParking/data_allStat/selectedEvents_Kee_"+dataset+"_BPHRun"+BPHRun+".root";
+  if(!isEleFinalState) outNtuName = "/vols/cms/amartell/BParking/data_allStat/selectedEvents_Kmumu_"+dataset+"_BPHRun"+BPHRun+".root";
+  gROOT->cd();
+  TFile* newFile;
+  TTree* newT;
+
+  Float_t Kll_cosAlpha;
+  Float_t Kll_CL_vtx;
+  Float_t Kll_kaon_DCASig;
+  Float_t Kll_Lxy;
+  Float_t Kll_ctxy;
+  //Float_t BToKll_llKFit_ll_mass;
+  Float_t Kll_mass;
+  Float_t Kll_pt;
+  Float_t Kll_kaon_pt;
+  Float_t Kll_lep1_pt;
+  Float_t Kll_lep2_pt;
+  Float_t Kll_lep1_eta;
+  Float_t Kll_lep2_eta;
+  Float_t Kll_lep1_phi;
+  Float_t Kll_lep2_phi;
+
+  if(saveOUTntu){
+    newFile = new TFile(outNtuName.c_str(),"recreate");
+    newT = new TTree("selectedEvents", "");
+    newT->Branch("Kll_cosAlpha", &Kll_cosAlpha, "Kll_cosAlpha/F");
+    newT->Branch("Kll_CL_vtx", &Kll_CL_vtx, "Kll_CL_vtx/F");
+    newT->Branch("Kll_kaon_DCASig", &Kll_kaon_DCASig, "Kll_kaon_DCASig/F");       
+    newT->Branch("Kll_Lxy", &Kll_Lxy, "Kll_Lxy/F");
+    newT->Branch("Kll_ctxy", &Kll_ctxy, "Kll_ctxy/F");
+    newT->Branch("Kll_mass", &Kll_mass, "Kll_mass/F");
+    newT->Branch("Kll_pt", &Kll_pt, "Kll_pt/F");                
+    newT->Branch("Kll_kaon_pt", &Kll_kaon_pt, "Kll_kaon_pt/F");
+    newT->Branch("Kll_lep1_pt", &Kll_lep1_pt, "Kll_mu1_pt/F");
+    newT->Branch("Kll_lep2_pt", &Kll_lep2_pt, "Kll_lep2_pt/F");
+    newT->Branch("Kll_lep1_eta", &Kll_lep1_eta, "Kll_lep1_eta/F");
+    newT->Branch("Kll_lep2_eta", &Kll_lep2_eta, "Kll_lep2_eta/F");
+    newT->Branch("Kll_lep1_phi", &Kll_lep1_phi, "Kll_lep1_phi/F");
+    newT->Branch("Kll_lep2_phi", &Kll_lep2_phi, "Kll_lep2_phi/F");
+  }
+
+  std::cout << " >>> qui ok " << std::endl;
+
   UInt_t run = 0;
   UInt_t lumi = 0;
   ULong64_t event = 0;
 
   int MuonTag_index = -1;
+  int MuonRecoTag_index = -1;
   int BToKll_sel_index = -1;
+  bool Lepton_softId[kMuonMax];
+  bool Lepton_mediumId[kMuonMax];
   float BToKll_lep1_charge[kBToKllMax];
   float BToKll_lep2_charge[kBToKllMax];
+  int BToKll_lep1_index[kBToKllMax];
+  int BToKll_lep2_index[kBToKllMax];
   float BToKll_cosAlpha[kBToKllMax];
   float BToKll_CL_vtx[kBToKllMax];
   float BToKll_kaon_DCASig[kBToKllMax];
   float BToKll_Lxy[kBToKllMax];
+  float BToKll_ctxy[kBToKllMax];
   float BToKll_llKFit_ll_mass[kBToKllMax];
   float BToKll_mass[kBToKllMax];
   float BToKll_pt[kBToKllMax];
   float BToKll_kaon_pt[kBToKllMax];
+  float BToKll_lep1_pt[kBToKllMax];
+  float BToKll_lep2_pt[kBToKllMax];
+  float BToKll_lep1_eta[kBToKllMax];
+  float BToKll_lep2_eta[kBToKllMax];
+  float BToKll_lep1_phi[kBToKllMax];
+  float BToKll_lep2_phi[kBToKllMax];
+
   int passed_2trk[kBToKllMax];
   
   t1->SetBranchStatus("*", 0);
@@ -145,27 +208,47 @@ int main(int argc, char *argv[]){
     t1->SetBranchStatus("BToKee_CL_vtx", 1);             t1->SetBranchAddress("BToKee_CL_vtx", &BToKll_CL_vtx);
     t1->SetBranchStatus("BToKee_kaon_DCASig", 1);        t1->SetBranchAddress("BToKee_kaon_DCASig", &BToKll_kaon_DCASig);
     t1->SetBranchStatus("BToKee_Lxy", 1);                t1->SetBranchAddress("BToKee_Lxy", &BToKll_Lxy);
+    t1->SetBranchStatus("BToKee_ctxy", 1);                t1->SetBranchAddress("BToKee_ctxy", &BToKll_ctxy);
     t1->SetBranchStatus("BToKee_eeKFit_ee_mass", 1);     t1->SetBranchAddress("BToKee_eeKFit_ee_mass", &BToKll_llKFit_ll_mass);
     t1->SetBranchStatus("BToKee_mass", 1);               t1->SetBranchAddress("BToKee_mass", &BToKll_mass);
     t1->SetBranchStatus("BToKee_pt", 1);                 t1->SetBranchAddress("BToKee_pt", &BToKll_pt);
     t1->SetBranchStatus("BToKee_kaon_pt", 1);            t1->SetBranchAddress("BToKee_kaon_pt", &BToKll_kaon_pt);
+    t1->SetBranchStatus("BToKee_ele1_pt", 1);            t1->SetBranchAddress("BToKee_ele1_pt", &BToKll_lep1_pt);
+    t1->SetBranchStatus("BToKee_ele2_pt", 1);            t1->SetBranchAddress("BToKee_ele2_pt", &BToKll_lep2_pt);
+    t1->SetBranchStatus("BToKee_ele1_eta", 1);            t1->SetBranchAddress("BToKee_ele1_eta", &BToKll_lep1_eta);
+    t1->SetBranchStatus("BToKee_ele2_eta", 1);            t1->SetBranchAddress("BToKee_ele2_eta", &BToKll_lep2_eta);
+    t1->SetBranchStatus("BToKee_ele1_phi", 1);            t1->SetBranchAddress("BToKee_ele1_phi", &BToKll_lep1_phi);
+    t1->SetBranchStatus("BToKee_ele2_phi", 1);            t1->SetBranchAddress("BToKee_ele2_phi", &BToKll_lep2_phi);
     //    t1->SetBranchStatus("BToKee_eeRefit", 1);            t1->SetBranchAddress("BToKee_eeRefit", &passed_2trk);
   }
   else{
     t1->SetBranchStatus("Muon_probe_index", 1);            t1->SetBranchAddress("Muon_probe_index", &MuonTag_index);
+    t1->SetBranchStatus("Muon_sel_index", 1);              t1->SetBranchAddress("Muon_sel_index", &MuonRecoTag_index);
+    t1->SetBranchStatus("Muon_softId", 1);                 t1->SetBranchAddress("Muon_softId", &Lepton_softId);
+    t1->SetBranchStatus("Muon_mediumId", 1);               t1->SetBranchAddress("Muon_mediumId", &Lepton_mediumId);
     t1->SetBranchStatus("BToKmumu_sel_index", 1);          t1->SetBranchAddress("BToKmumu_sel_index", &BToKll_sel_index);
     t1->SetBranchStatus("BToKmumu_mu1_charge", 1);         t1->SetBranchAddress("BToKmumu_mu1_charge", &BToKll_lep1_charge);
     t1->SetBranchStatus("BToKmumu_mu2_charge", 1);         t1->SetBranchAddress("BToKmumu_mu2_charge", &BToKll_lep2_charge);
+    t1->SetBranchStatus("BToKmumu_mu1_index", 1);         t1->SetBranchAddress("BToKmumu_mu1_index", &BToKll_lep1_index);
+    t1->SetBranchStatus("BToKmumu_mu2_index", 1);         t1->SetBranchAddress("BToKmumu_mu2_index", &BToKll_lep2_index);
     t1->SetBranchStatus("BToKmumu_cosAlpha", 1);           t1->SetBranchAddress("BToKmumu_cosAlpha", &BToKll_cosAlpha);
     t1->SetBranchStatus("BToKmumu_CL_vtx", 1);             t1->SetBranchAddress("BToKmumu_CL_vtx", &BToKll_CL_vtx);
     t1->SetBranchStatus("BToKmumu_kaon_DCASig", 1);        t1->SetBranchAddress("BToKmumu_kaon_DCASig", &BToKll_kaon_DCASig);
     t1->SetBranchStatus("BToKmumu_Lxy", 1);                t1->SetBranchAddress("BToKmumu_Lxy", &BToKll_Lxy);
+    t1->SetBranchStatus("BToKmumu_ctxy", 1);               t1->SetBranchAddress("BToKmumu_ctxy", &BToKll_ctxy);
     t1->SetBranchStatus("BToKmumu_mumuKFit_mumu_mass", 1); t1->SetBranchAddress("BToKmumu_mumuKFit_mumu_mass", &BToKll_llKFit_ll_mass);
     t1->SetBranchStatus("BToKmumu_mass", 1);               t1->SetBranchAddress("BToKmumu_mass", &BToKll_mass);
     t1->SetBranchStatus("BToKmumu_pt", 1);                 t1->SetBranchAddress("BToKmumu_pt", &BToKll_pt);
     t1->SetBranchStatus("BToKmumu_kaon_pt", 1);            t1->SetBranchAddress("BToKmumu_kaon_pt", &BToKll_kaon_pt);
+    t1->SetBranchStatus("BToKmumu_mu1_pt", 1);           t1->SetBranchAddress("BToKmumu_mu1_pt", &BToKll_lep1_pt);
+    t1->SetBranchStatus("BToKmumu_mu2_pt", 1);           t1->SetBranchAddress("BToKmumu_mu2_pt", &BToKll_lep2_pt);
+    t1->SetBranchStatus("BToKmumu_mu1_eta", 1);            t1->SetBranchAddress("BToKmumu_mu1_eta", &BToKll_lep1_eta);
+    t1->SetBranchStatus("BToKmumu_mu2_eta", 1);            t1->SetBranchAddress("BToKmumu_mu2_eta", &BToKll_lep2_eta);
+    t1->SetBranchStatus("BToKmumu_mu1_phi", 1);            t1->SetBranchAddress("BToKmumu_mu1_phi", &BToKll_lep1_phi);
+    t1->SetBranchStatus("BToKmumu_mu2_phi", 1);            t1->SetBranchAddress("BToKmumu_mu2_phi", &BToKll_lep2_phi);
     //    t1->SetBranchStatus("BToKmumu_mumuRefit", 1);          t1->SetBranchAddress("BToKmumu_mumuRefit", &passed_2trk);
   }
+
 
 
   //selections 
@@ -209,11 +292,25 @@ int main(int argc, char *argv[]){
   }
   */
 
+
+  std::string outName = "outMassHistos_Kee_"+dataset+"_BPHRun"+BPHRun+".root";
+  if(!isEleFinalState) outName = "outMassHistos_Kmumu_"+dataset+"_BPHRun"+BPHRun+".root";
+  TFile outMassHistos(outName.c_str(), "recreate");
+
   ///histos: 1 per bin plus inclusive
   TH1F* hAlpha[6];
   TH1F* hCLVtx[6];
   TH1F* hDCASig[6];
   TH1F* hLxy[6];
+  TH1F* hctxy[6];
+  TH1F* hKaonpt[6];
+  TH1F* hLep1pt[6];
+  TH1F* hLep2pt[6];
+  TH1F* hLep1pt_EB[6];
+  TH1F* hLep2pt_EB[6];
+  TH1F* hLep1pt_EE[6];
+  TH1F* hLep2pt_EE[6];
+  TH1F* hBpt[6];
   TH1F* hllMass[6];
   TH2F* hllMass_vs_Bmass[6];
   TH1F* hBmass[6];
@@ -253,6 +350,53 @@ int main(int argc, char *argv[]){
     hBmass[ij]->Sumw2();
     hBmass[ij]->SetLineColor(kRed);
     hBmass[ij]->SetLineWidth(2);
+
+    hctxy[ij] = new TH1F(Form("hctxy_%d", ij), "", 1000, 0., 10.);
+    hctxy[ij]->Sumw2();
+    hctxy[ij]->SetLineColor(kRed);
+    hctxy[ij]->SetLineWidth(2);
+
+    hKaonpt[ij] = new TH1F(Form("hKaonpt_%d", ij), "", 100, 0., 10.);
+    hKaonpt[ij]->Sumw2();
+    hKaonpt[ij]->SetLineColor(kRed);
+    hKaonpt[ij]->SetLineWidth(2);
+
+    hLep1pt[ij] = new TH1F(Form("hLep1pt_%d", ij), "", 100, 0., 10.);
+    hLep1pt[ij]->Sumw2();
+    hLep1pt[ij]->SetLineColor(kRed);
+    hLep1pt[ij]->SetLineWidth(2);
+
+    hLep2pt[ij] = new TH1F(Form("hLep2pt_%d", ij), "", 100, 0., 10.);
+    hLep2pt[ij]->Sumw2();
+    hLep2pt[ij]->SetLineColor(kRed);
+    hLep2pt[ij]->SetLineWidth(2);
+
+    //
+    hLep1pt_EB[ij] = new TH1F(Form("hLep1pt_EB_%d", ij), "", 100, 0., 10.);
+    hLep1pt_EB[ij]->Sumw2();
+    hLep1pt_EB[ij]->SetLineColor(kRed);
+    hLep1pt_EB[ij]->SetLineWidth(2);
+
+    hLep2pt_EB[ij] = new TH1F(Form("hLep2pt_EB_%d", ij), "", 100, 0., 10.);
+    hLep2pt_EB[ij]->Sumw2();
+    hLep2pt_EB[ij]->SetLineColor(kRed);
+    hLep2pt_EB[ij]->SetLineWidth(2);
+
+    //
+    hLep1pt_EE[ij] = new TH1F(Form("hLep1pt_EE_%d", ij), "", 100, 0., 10.);
+    hLep1pt_EE[ij]->Sumw2();
+    hLep1pt_EE[ij]->SetLineColor(kRed);
+    hLep1pt_EE[ij]->SetLineWidth(2);
+
+    hLep2pt_EE[ij] = new TH1F(Form("hLep2pt_EE_%d", ij), "", 100, 0., 10.);
+    hLep2pt_EE[ij]->Sumw2();
+    hLep2pt_EE[ij]->SetLineColor(kRed);
+    hLep2pt_EE[ij]->SetLineWidth(2);
+
+    hBpt[ij] = new TH1F(Form("hBpt_%d", ij), "", 100, 0., 10.);
+    hBpt[ij]->Sumw2();
+    hBpt[ij]->SetLineColor(kRed);
+    hBpt[ij]->SetLineWidth(2);
   }
 
 
@@ -263,6 +407,9 @@ int main(int argc, char *argv[]){
   float nEv_vtxCLEff[5] = {0.};
   float nEv_LxyEff[5] = {0.};
 
+  int nEvents_hm_5p6 = 0;
+  int nEvents_hm_5p7 = 0;
+
   if(nMaxEvents == -1) nMaxEvents = nEvts;
   for(int iEvt = 0; iEvt<nMaxEvents; ++iEvt){
     if(iEvt%500000 == 0) std::cout << " >>> processing event " << iEvt << " " << 1.*iEvt/nEvts*100. << std::endl;
@@ -270,16 +417,59 @@ int main(int argc, char *argv[]){
     t1->GetEntry(iEvt);
 
     if(MuonTag_index == -1) continue;
+    if(!isEleFinalState && MuonRecoTag_index == -1) continue;
     ++nEv_muonTag[0];
 
     if(BToKll_sel_index == -1) continue; 
     ++nEv_recoCand[0];
 
+
+    // if(!isEleFinalState && (Lepton_softId[BToKll_lep1_index[BToKll_sel_index]] != 1 ||
+    // 			    Lepton_softId[BToKll_lep2_index[BToKll_sel_index]] != 1)) continue;
+    // if(!isEleFinalState && (Lepton_mediumId[BToKll_lep1_index[BToKll_sel_index]] != 1 ||
+    // 			    Lepton_mediumId[BToKll_lep2_index[BToKll_sel_index]] != 1)) continue;
+ 
+
     if(BToKll_lep1_charge[BToKll_sel_index]*BToKll_lep2_charge[BToKll_sel_index] > 0.) continue;
 
-    /*
-    if(BToKll_kaon_pt[BToKll_sel_index] < 1.5 || BToKll_pt[BToKll_sel_index] < 10.) continue;
-    */
+    //    if(isEleFinalState && (BToKll_kaon_pt[BToKll_sel_index] < 1.5 || BToKll_pt[BToKll_sel_index] < 10.)) continue;
+
+
+    if(dataset == "MC" || BToKll_mass[BToKll_sel_index] > 5.7){
+      ++nEvents_hm_5p7;
+      hAlpha[5]->Fill(BToKll_cosAlpha[BToKll_sel_index]);
+      hCLVtx[5]->Fill(BToKll_CL_vtx[BToKll_sel_index]);
+      hDCASig[5]->Fill(BToKll_kaon_DCASig[BToKll_sel_index]);
+      hLxy[5]->Fill(BToKll_Lxy[BToKll_sel_index]);
+      hctxy[5]->Fill(BToKll_ctxy[BToKll_sel_index]);
+      hKaonpt[5]->Fill(BToKll_kaon_pt[BToKll_sel_index]);
+      hLep1pt[5]->Fill(BToKll_lep1_pt[BToKll_sel_index]);
+      hLep2pt[5]->Fill(BToKll_lep2_pt[BToKll_sel_index]);      
+      if(std::abs(BToKll_lep1_eta[BToKll_sel_index]) < 1.47) hLep1pt_EB[5]->Fill(BToKll_lep1_pt[BToKll_sel_index]);
+      else hLep1pt_EE[5]->Fill(BToKll_lep1_pt[BToKll_sel_index]);
+      if(std::abs(BToKll_lep2_eta[BToKll_sel_index]) < 1.47) hLep2pt_EB[5]->Fill(BToKll_lep2_pt[BToKll_sel_index]);
+      else hLep2pt_EE[5]->Fill(BToKll_lep2_pt[BToKll_sel_index]);
+      hBpt[5]->Fill(BToKll_pt[BToKll_sel_index]);      
+
+      if(saveOUTntu){
+	Kll_cosAlpha = BToKll_cosAlpha[BToKll_sel_index];
+	Kll_CL_vtx = BToKll_CL_vtx[BToKll_sel_index];
+	Kll_kaon_DCASig = BToKll_kaon_DCASig[BToKll_sel_index];
+	Kll_Lxy = BToKll_Lxy[BToKll_sel_index];
+	Kll_ctxy = BToKll_ctxy[BToKll_sel_index];
+	Kll_mass = BToKll_mass[BToKll_sel_index];
+	Kll_pt = BToKll_pt[BToKll_sel_index];
+	Kll_kaon_pt = BToKll_kaon_pt[BToKll_sel_index];
+	Kll_lep1_pt = BToKll_lep1_pt[BToKll_sel_index];
+	Kll_lep2_pt = BToKll_lep2_pt[BToKll_sel_index];
+	Kll_lep1_eta = BToKll_lep1_eta[BToKll_sel_index];
+	Kll_lep2_eta = BToKll_lep2_eta[BToKll_sel_index];
+	Kll_lep1_phi = BToKll_lep1_phi[BToKll_sel_index];
+	Kll_lep2_phi = BToKll_lep2_phi[BToKll_sel_index];
+
+	newT->Fill();
+      }
+    }
 
     float llInvMass = BToKll_llKFit_ll_mass[BToKll_sel_index];
     int massBin = -1;
@@ -290,30 +480,41 @@ int main(int argc, char *argv[]){
       }
     }
 
-    if(massBin == -1) continue;
+    if(massBin != -1){
     ++nEv_chargeEff[massBin];
 
     hAlpha[massBin]->Fill(BToKll_cosAlpha[BToKll_sel_index]);
-    hAlpha[5]->Fill(BToKll_cosAlpha[BToKll_sel_index]);
-    //if(BToKll_cosAlpha[BToKll_sel_index] < 0.999) continue;
+
+    //    if(isEleFinalState && BToKll_cosAlpha[BToKll_sel_index] < 0.999) continue;
     if(BToKll_cosAlpha[BToKll_sel_index] < 0.99) continue;
     ++nEv_alphaEff[massBin];
 
     hCLVtx[massBin]->Fill(BToKll_CL_vtx[BToKll_sel_index]);
-    hCLVtx[5]->Fill(BToKll_CL_vtx[BToKll_sel_index]);
+
     if(BToKll_CL_vtx[BToKll_sel_index] < 0.1) continue;
     ++nEv_vtxCLEff[massBin];    
 
     hDCASig[massBin]->Fill(BToKll_kaon_DCASig[BToKll_sel_index]);
     hLxy[massBin]->Fill(BToKll_Lxy[BToKll_sel_index]);
-    hDCASig[5]->Fill(BToKll_kaon_DCASig[BToKll_sel_index]);
-    hLxy[5]->Fill(BToKll_Lxy[BToKll_sel_index]);
+    hctxy[massBin]->Fill(BToKll_ctxy[BToKll_sel_index]);
+    hKaonpt[massBin]->Fill(BToKll_kaon_pt[BToKll_sel_index]);
+    hLep1pt[massBin]->Fill(BToKll_lep1_pt[BToKll_sel_index]);
+    hLep2pt[massBin]->Fill(BToKll_lep2_pt[BToKll_sel_index]);
+    if(std::abs(BToKll_lep1_eta[BToKll_sel_index]) < 1.47) hLep1pt_EB[massBin]->Fill(BToKll_lep1_pt[BToKll_sel_index]);
+    else hLep1pt_EE[massBin]->Fill(BToKll_lep1_pt[BToKll_sel_index]);
+    if(std::abs(BToKll_lep2_eta[BToKll_sel_index]) < 1.47) hLep2pt_EB[massBin]->Fill(BToKll_lep2_pt[BToKll_sel_index]);
+    else hLep2pt_EE[massBin]->Fill(BToKll_lep2_pt[BToKll_sel_index]);
+
+
+    hBpt[massBin]->Fill(BToKll_pt[BToKll_sel_index]);
+
     if(BToKll_Lxy[BToKll_sel_index] < 6.) continue;
     ++nEv_LxyEff[massBin];
 
     hllMass[massBin]->Fill(llInvMass);
     hllMass_vs_Bmass[massBin]->Fill(BToKll_mass[BToKll_sel_index], llInvMass);
     hBmass[massBin]->Fill(BToKll_mass[BToKll_sel_index]);
+    }
 
     hllMass[5]->Fill(llInvMass);
     hllMass_vs_Bmass[5]->Fill(BToKll_mass[BToKll_sel_index], llInvMass);
@@ -321,17 +522,37 @@ int main(int argc, char *argv[]){
 
   }//loop over events
 
-  std::string outName = "outMassHistos_DATA_Kee.root";
-  if(!isEleFinalState) outName = "outMassHistos_DATA_Kmumu.root";
-  TFile outMassHistos(outName.c_str(), "recreate");
-  outMassHistos.cd();
+  
+  if(saveOUTntu){
+    newFile->cd();
+    newT->Write();
+    newFile->Close(); 
+  }
 
+  
+  // std::string outName = "outMassHistos_Kee_"+dataset+"_BPHRun"+BPHRun+".root";
+  // if(!isEleFinalState) outName = "outMassHistos_Kmumu_"+dataset+"_BPHRun"+BPHRun+".root";
+  // TFile outMassHistos(outName.c_str(), "recreate");
+  outMassHistos.cd();
+  
   std::cout << " ***** summary ***** "<< std::endl;
   for(int ij=0; ij<6; ++ij){
     hAlpha[ij]->Write(hAlpha[ij]->GetName());
     hCLVtx[ij]->Write(hCLVtx[ij]->GetName());
     hDCASig[ij]->Write(hDCASig[ij]->GetName());
     hLxy[ij]->Write(hLxy[ij]->GetName());
+    hctxy[ij]->Write(hctxy[ij]->GetName());
+    hKaonpt[ij]->Write(hKaonpt[ij]->GetName());
+    hLep1pt[ij]->Write(hLep1pt[ij]->GetName());
+    hLep2pt[ij]->Write(hLep2pt[ij]->GetName());
+    hLep1pt_EB[ij]->Write(hLep1pt_EB[ij]->GetName());
+    hLep1pt_EE[ij]->Write(hLep1pt_EE[ij]->GetName());
+    hLep2pt_EB[ij]->Write(hLep2pt_EB[ij]->GetName());
+    hLep2pt_EE[ij]->Write(hLep2pt_EE[ij]->GetName());
+
+
+    hBpt[ij]->Write(hBpt[ij]->GetName());
+
     hllMass[ij]->Write(hllMass[ij]->GetName());
     hllMass_vs_Bmass[ij]->Write(hllMass_vs_Bmass[ij]->GetName());
     hBmass[ij]->Write(hBmass[ij]->GetName());
@@ -343,6 +564,8 @@ int main(int argc, char *argv[]){
 
   }
   outMassHistos.Close();
+
+  return 100;
 
   TLegend *legM = new TLegend(0.70,0.70,0.98,0.95,NULL,"brNDC");
   legM->SetTextFont(42);
@@ -546,5 +769,8 @@ int main(int argc, char *argv[]){
     std::cout << "\n category = " << hBmass[ij]->GetName()
               << " \n \t recoEvts = " << nEv_LxyEff[ij] << " postFit " << nEv_postFit[ij] << "+/-" << nEvError_postFit[ij] << std::endl;
   }
+
+
+  std::cout << " nEvents_hm_5p6 = " << nEvents_hm_5p6 << " nEvents_hm_5p7 " << nEvents_hm_5p7 << std::endl;
 
 }
