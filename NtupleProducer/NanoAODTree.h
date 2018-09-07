@@ -112,11 +112,11 @@ public :
    float BToKee_kaon_pt[kBToKeeMax];
    float BToKee_kaon_eta[kBToKeeMax];
    float BToKee_kaon_phi[kBToKeeMax];
-   float BToKee_ele1_charge[kBToKeeMax];
+   int BToKee_ele1_charge[kBToKeeMax];
    float BToKee_ele1_pt[kBToKeeMax];
    float BToKee_ele1_eta[kBToKeeMax];
    float BToKee_ele1_phi[kBToKeeMax];
-   float BToKee_ele2_charge[kBToKeeMax];
+   int BToKee_ele2_charge[kBToKeeMax];
    float BToKee_ele2_pt[kBToKeeMax];
    float BToKee_ele2_eta[kBToKeeMax];
    float BToKee_ele2_phi[kBToKeeMax];
@@ -284,9 +284,11 @@ void NanoAODTree::Init(TChain* tree)
     _tree->SetBranchAddress("BToKee_ele1_pt",&BToKee_ele1_pt);
     _tree->SetBranchAddress("BToKee_ele1_eta",&BToKee_ele1_eta);
     _tree->SetBranchAddress("BToKee_ele1_phi",&BToKee_ele1_phi);
+    _tree->SetBranchAddress("BToKee_ele1_charge",&BToKee_ele1_charge);
     _tree->SetBranchAddress("BToKee_ele2_pt",&BToKee_ele2_pt);
     _tree->SetBranchAddress("BToKee_ele2_eta",&BToKee_ele2_eta);
     _tree->SetBranchAddress("BToKee_ele2_phi",&BToKee_ele2_phi);
+    _tree->SetBranchAddress("BToKee_ele2_charge",&BToKee_ele2_charge);
   }
 
   int isMC = _tree->SetBranchAddress("nGenPart",&nGenPart);
