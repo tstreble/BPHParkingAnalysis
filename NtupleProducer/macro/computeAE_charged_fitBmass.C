@@ -7,9 +7,9 @@
 //should be ok for electron final state 
 //example to run
 //electron final state
-//root -l computeAE_charged_fitBmass.C'("/vols/cms/amartell/BParking/ntuPROD/ntu_BToKee.root" , "/vols/cms/amartell/BParking/ntuPROD/ntu_BToKJPsiee.root", 1, true)' 
+//root -l computeAE_charged_fitBmass.C'("/vols/cms/amartell/BParking/ntuPROD/newNANO_20Aug/ntu_BToKee_18_08_14.root" , "/vols/cms/amartell/BParking/ntuPROD/newNANO_20Aug/ntu_BToKJPsiee_18_08_14.root", 1, true)' 
 //muon final state
-//root -l computeAE_charged_fitBmass.C'("/vols/cms/amartell/BParking/ntuPROD/ntu_BToKmumu.root" , "/vols/cms/amartell/BParking/ntuPROD/ntu_BToKJPsimumu.root", 0, true)' 
+//root -l computeAE_charged_fitBmass.C'("/vols/cms/amartell/BParking/ntuPROD/newNANO_20Aug/ntu_BToKmumu_18_09_3.root" , "/vols/cms/amartell/BParking/ntuPROD/newNANO_20Aug/ntu_BToKJPsimumu_18_09_3.root", 0, true)' 
 
 
 #include <iostream>
@@ -166,8 +166,9 @@ void computeAE_charged_fitBmass(std::string nonResonantFile, std::string Resonan
   }//loop
 
 
-
-  TFile outMassHistos("outMassHistos.root", "recreate");
+  std::string outName = "outMassHistos_MC_ee.root";
+  if(!isEleFinalState) outName ="outMassHistos_MC_mumu.root";
+  TFile outMassHistos(outName.c_str(), "recreate");
   outMassHistos.cd();
   for(int ij=0; ij<6; ++ij)
     h_Bmass_llbin[ij]->Write(h_Bmass_llbin[ij]->GetName());
